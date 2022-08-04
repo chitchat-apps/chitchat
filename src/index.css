@@ -1,0 +1,6 @@
+html,
+body,
+#root {
+  min-height: 100% !important;
+  height: 100%;
+}
