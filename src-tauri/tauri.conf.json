@@ -21,6 +21,9 @@
       },
       "window": {
         "create": true
+      },
+      "shell": {
+        "open": true
       }
     },
     "bundle": {
