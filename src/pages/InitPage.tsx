@@ -1,15 +1,24 @@
 import { VStack, Heading, Spinner, HStack } from "@chakra-ui/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useTabs from "../hooks/useTabs";
 
 const InitPage: React.FC = () => {
   const navigate = useNavigate();
+  const { loadTabs, isInitialized } = useTabs();
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      navigate("/home");
-    }, 5000);
+    setActiveTab(loadTabs());
   }, []);
+
+  useEffect(() => {
+    if (isInitialized) {
+      new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
+        navigate("/home/" + (activeTab ? activeTab : ""))
+      );
+    }
+  }, [isInitialized, activeTab]);
 
   return (
     <VStack h="100%" justify="center" align="center" spacing={4}>
