@@ -1,36 +1,49 @@
-import { HStack, IconButton, useColorMode } from "@chakra-ui/react";
-import { SettingsIcon } from "@chakra-ui/icons";
+import { HStack, IconButton, useColorModeValue } from "@chakra-ui/react";
+import { AddIcon, SettingsIcon } from "@chakra-ui/icons";
 import { FC } from "react";
 import TopBarTab from "./TopBarTab";
-import { WebviewWindow } from "@tauri-apps/api/window";
+import { Link, useNavigate } from "react-router-dom";
+import { Tab } from "../lib/tab";
+import useTabs from "../hooks/useTabs";
+import useTab from "../hooks/useTab";
 
 const TopBar: FC = () => {
-  const handleSettingsClick = () => {
-    console.log("Settings clicked");
-    const window = new WebviewWindow("Settings");
+  const navigate = useNavigate();
+  const { tabs, addTab } = useTabs();
+  const currentTab = useTab();
 
-    window.once("tauri://created", (e) => {
-      console.log("Settings window created");
-    });
-
-    window.once("tauri://error", (e) => {
-      console.log(e);
-    });
+  const handleAddTab = () => {
+    const newTab = new Tab("empty");
+    addTab(newTab);
+    navigate(`/home/${newTab.id}`);
   };
 
   return (
-    <HStack spacing={0} shadow="sm">
+    <HStack
+      spacing={0}
+      flexWrap="wrap"
+      bg={useColorModeValue("blackAlpha.50", "whiteAlpha.50")}
+    >
       <IconButton
+        as={Link}
+        to={`/settings?tab=${currentTab?.id}`}
         variant="ghost"
         size="sm"
         icon={<SettingsIcon />}
         aria-label="Settings"
         rounded="none"
-        onClick={handleSettingsClick}
       />
-      <TopBarTab label="SebbDev" active />
-      <TopBarTab label="Channel2" />
-      <TopBarTab label="Channel3" />
+      {tabs.map((t) => (
+        <TopBarTab key={t.id} tab={t} />
+      ))}
+      <IconButton
+        variant="ghost"
+        size="sm"
+        icon={<AddIcon />}
+        aria-label="Settings"
+        rounded="none"
+        onClick={handleAddTab}
+      />
     </HStack>
   );
 };
