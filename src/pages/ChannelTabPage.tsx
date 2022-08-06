@@ -91,9 +91,12 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
       </VStack>
       <Box px={2} w="full" pos="absolute" bottom={0}>
         <InputGroup>
-          <Input variant="filled" placeholder="Send message" />
+          {/*TODO : Implement this */}
+          <Input variant="filled" placeholder="Send message" isDisabled />
           <InputRightAddon>
-            <Button borderLeftRadius={0}>Send</Button>
+            <Button borderLeftRadius={0} isDisabled>
+              Send
+            </Button>
           </InputRightAddon>
         </InputGroup>
       </Box>

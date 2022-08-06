@@ -56,8 +56,7 @@ export const SettingsSideBar: FC = () => {
           General
         </Button>
         <Button
-          as={Link}
-          to="/settings/user"
+          isDisabled
           isActive={location.pathname === "/settings/user"}
           variant="ghost"
           display="flex"
@@ -70,8 +69,7 @@ export const SettingsSideBar: FC = () => {
       </VStack>
       <VStack spacing={0} align="stretch">
         <Button
-          as={Link}
-          to="/settings"
+          isDisabled
           variant="ghost"
           display="flex"
           justifyContent="start"
@@ -81,8 +79,7 @@ export const SettingsSideBar: FC = () => {
           Placeholder
         </Button>
         <Button
-          as={Link}
-          to="/settings"
+          isDisabled
           variant="ghost"
           display="flex"
           justifyContent="start"
