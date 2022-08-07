@@ -115,3 +115,14 @@ export function rgbToHex(rgb: RGB): string {
   const { r, g, b } = rgb;
   return `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`;
 }
+
+export function shadeColor(rgb: RGB, percent: number) {
+  const { r, g, b } = rgb;
+  const newRgb: RGB = { ...rgb };
+
+  newRgb.r = clamp(Math.round((r * (100 + percent)) / 100), 0, 255);
+  newRgb.g = clamp(Math.round((g * (100 + percent)) / 100), 0, 255);
+  newRgb.b = clamp(Math.round((b * (100 + percent)) / 100), 0, 255);
+
+  return newRgb;
+}

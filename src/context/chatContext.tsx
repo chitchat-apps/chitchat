@@ -19,10 +19,12 @@ export const getInitialChannels = () => {
   return initialChannels;
 };
 
-const client = new tmi.Client({
+export const client = new tmi.Client({
   channels: getInitialChannels(),
   logger: {
-    info: console.log,
+    info: () => {
+      /* suppress tmi.js info logs */
+    },
     warn: console.warn,
     error: console.error,
   },
@@ -88,8 +90,8 @@ const ChatProvider: FC<{
 
         const chat = { ...chats[channel] };
         if (chat) {
-          // limit the number of messages to 200
-          if (chat.messages.length > 200) chat.messages.shift();
+          // limit the number of messages to 100
+          if (chat.messages.length > 100) chat.messages.shift();
           chat.messages.push(m);
           setChats({ ...chats, [channel]: chat });
           localStorage.setItem(

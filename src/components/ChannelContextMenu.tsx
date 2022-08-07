@@ -51,6 +51,10 @@ const ChannelContextMenu = () => {
             Reconnect
           </MenuItem>
           <MenuItem
+            as="a"
+            href={`https://twitch.tv/${tab.channel}`}
+            target="_blank"
+            rel="noopener noreferrer"
             fontSize="sm"
             py={1}
             icon={<ExternalLinkIcon />}
