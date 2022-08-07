@@ -1,3 +1,6 @@
+import "@fontsource/poppins";
+import "@fontsource/roboto-mono";
+
 import { FC, ReactElement } from "react";
 import {
   ChakraProvider,
@@ -41,17 +44,25 @@ const inputStyle: ComponentMultiStyleConfig = {
   },
 };
 
-const theme = extendTheme(withDefaultColorScheme({ colorScheme: "purple" }), {
-  initialColorMode: "dark",
-  useSystemColorMode: true,
-  components: {
-    Input: inputStyle,
-  },
-});
+export const chakraTheme = extendTheme(
+  withDefaultColorScheme({ colorScheme: "purple" }),
+  {
+    initialColorMode: "dark",
+    useSystemColorMode: true,
+    components: {
+      Input: inputStyle,
+    },
+    fonts: {
+      heading: `Poppins, sans-serif`,
+      body: `Poppins, sans-serif`,
+      mono: `'Roboto Mono', monospace`,
+    },
+  }
+);
 
 export const App: FC = () => {
   return (
-    <ChakraProvider theme={theme}>
+    <ChakraProvider theme={chakraTheme}>
       <BrowserRouter>
         <TabProvider>
           <TabInitializerCheck>
