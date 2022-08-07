@@ -14,7 +14,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { FC, useEffect, useRef, useState } from "react";
-import { renderToString } from "react-dom/server";
 import { createRoot, Root } from "react-dom/client";
 import { chakraTheme } from "../App";
 import ChannelContextMenu from "../components/ChannelContextMenu";
@@ -26,6 +25,7 @@ import { ChannelTab } from "../lib/tab";
 import { client } from "../context/chatContext";
 import { ChatUserstate } from "tmi.js";
 import { Message } from "../lib/chat";
+import { v4 } from "uuid";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
@@ -41,10 +41,14 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
   const firstRender = useRef(true);
   const rootRef = useRef<Root | null>(null);
 
+  const [stopScroll, setStopScroll] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const scrollToBottom = () => {
-    chatBottomRef.current?.scrollIntoView();
+  const scrollToBottom = (override = false) => {
+    if (!stopScroll && !override) {
+      chatBottomRef.current?.scrollIntoView();
+    }
   };
 
   useEffect(() => {
@@ -66,11 +70,8 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
     ) => {
       if (channel === "#" + tab.channel) {
         const m: Message = {
-          id: userstate.id || "",
-          userId: userstate["user-id"] || "",
-          username: userstate.username || "",
-          displayName: userstate.displayName || "",
-          color: userstate.color || "",
+          channel: channel.replace("#", ""),
+          userstate,
           message,
           timestamp: new Date().toLocaleTimeString(),
         };
@@ -101,8 +102,17 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
         if (!rootRef.current)
           rootRef.current = createRoot(initialMessagesRef.current);
 
-        const messages = chat.messages.map((message, i) => (
-          <ChatMessage key={`${message.id}-${i}`} message={message} />
+        const messages = chat.messages.map((message) => (
+          <ChatMessage
+            key={message.userstate.id || v4()}
+            id={message.userstate.id || v4()}
+            message={message.message}
+            color={message.userstate.color}
+            username={
+              message.userstate["display-name"] || message.userstate.username
+            }
+            timestamp={message.timestamp}
+          />
         ));
         rootRef.current.render(
           <ChakraProvider theme={chakraTheme}>{messages}</ChakraProvider>
@@ -115,6 +125,24 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
 
     return () => {
       firstRender.current = true;
+    };
+  }, [tab]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (chatContainerRef.current) {
+        setStopScroll(true);
+      }
+    };
+
+    if (chatContainerRef.current) {
+      chatContainerRef.current.addEventListener("wheel", onScroll);
+    }
+
+    return () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.removeEventListener("wheel", onScroll);
+      }
     };
   }, [tab]);
 
@@ -153,7 +181,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
         {/* <ChatMessage username="SebbDev" message="Hello there 👋" />
         <ChatMessage username="Grievous" message="🤨" />
         <ChatMessage username="Grievous" message="General Kenobi 🤖" /> */}
-        <VStack spacing={0} ref={initialMessagesRef} opacity={0.5} />
+        <VStack w="full" spacing={0} ref={initialMessagesRef} opacity={0.75} />
         <VStack
           key="initial-message-separator"
           w="full"
@@ -175,10 +203,40 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
           </Text>
         </VStack>
         {messages.map((m) => (
-          <ChatMessage key={m.id} message={m} />
+          // <ChatMessage key={`${m.userstate.id}-${i}`} message={m} />
+          <ChatMessage
+            key={m.userstate.id || v4()}
+            id={m.userstate.id || v4()}
+            message={m.message}
+            color={m.userstate.color}
+            username={m.userstate["display-name"] || m.userstate.username}
+            timestamp={m.timestamp}
+            emotes={m.userstate.emotes}
+          />
         ))}
         <Box ref={chatBottomRef} />
       </VStack>
+      {stopScroll && (
+        <Button
+          variant="solid"
+          left="50%"
+          transform="translateX(-50%)"
+          w="full"
+          maxW="xs"
+          pos="absolute"
+          bottom={12}
+          p={2}
+          opacity={0.5}
+          _hover={{ opacity: 1 }}
+          rounded="md"
+          onClick={() => {
+            setStopScroll(false);
+            scrollToBottom(true);
+          }}
+        >
+          <Text textAlign="center">Chat paused due to scroll</Text>
+        </Button>
+      )}
       <Box px={2} w="full" pos="absolute" bottom={0}>
         <InputGroup>
           {/*TODO : Implement this */}

@@ -79,11 +79,8 @@ const ChatProvider: FC<{
       if (!ignore) {
         channel = channel.replace("#", "");
         const m: Message = {
-          id: userstate.id || "",
-          userId: userstate["user-id"] || "",
-          username: userstate.username || "",
-          displayName: userstate.displayName || "",
-          color: userstate.color || "",
+          channel: channel.replace("#", ""),
+          userstate,
           message,
           timestamp: new Date().toLocaleTimeString(),
         };

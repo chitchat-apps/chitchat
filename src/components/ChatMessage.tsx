@@ -1,7 +1,6 @@
-import { BsDiamondFill } from "react-icons/bs";
-import { Box, Icon, Text, useColorModeValue } from "@chakra-ui/react";
-import { FC, useMemo } from "react";
-import { Message, parseChatMessage } from "../lib/chat";
+import { Box, Image, Text, useColorModeValue } from "@chakra-ui/react";
+import { FC, Fragment, useMemo } from "react";
+import { parseChatMessage } from "../lib/chat";
 import { randomColor } from "@chakra-ui/theme-tools";
 import {
   getLightnessOfColor,
@@ -11,17 +10,29 @@ import {
 } from "../utils/color";
 
 interface ChatMessageProps {
-  message: Message;
+  id: string;
+  message: string;
+  color?: string;
+  username: string;
+  timestamp: string;
+  emotes?: { [emoteId: string]: string[] };
 }
 
-const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
-  const timestamp = useMemo(() => {
-    const timestampArr = message.timestamp.split(":");
+const ChatMessage: FC<ChatMessageProps> = ({
+  id,
+  message,
+  color,
+  username,
+  timestamp,
+  emotes,
+}) => {
+  const _timestamp = useMemo(() => {
+    const timestampArr = timestamp.split(":");
     return `${timestampArr[0]}:${timestampArr[1]}`;
   }, []);
 
-  const color = useMemo(() => {
-    const origColor = message.color || randomColor();
+  const _color = useMemo(() => {
+    const origColor = color || randomColor();
     const lightness = getLightnessOfColor(origColor);
     const colorType =
       lightness < 0.15 ? "dark" : lightness > 0.85 ? "light" : "ok";
@@ -33,30 +44,46 @@ const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
 
   const purpleColor = useColorModeValue("purple.500", "purple.200");
 
-  const messageTokens = useMemo(() => {
-    return parseChatMessage(message.message).map((token, i) => (
-      <>
-        {i !== 0 && " "}
-        <Text
-          overflow="hidden"
-          key={`token-${i}-${message.id}`}
-          as="span"
-          style={token.style}
-          {...(token.isLink && {
-            as: "a",
-            href: token.text.startsWith("http")
-              ? token.text
-              : "https://" + token.text,
-            target: "_blank",
-            rel: "noopener noreferrer",
-            color: purpleColor,
-            textDecor: "underline",
-          })}
-        >
-          {token.text}
-        </Text>
-      </>
-    ));
+  const messageFragments = useMemo(() => {
+    return parseChatMessage(message, emotes).map((token, i) => {
+      const key = `${id}-${token.text}-${i}`;
+
+      if (token.isLink)
+        return (
+          <Fragment key={key}>
+            {i !== 0 && <span> </span>}
+            <Text
+              as="a"
+              href={token.text}
+              color={purpleColor}
+              textDecor="underline"
+            >
+              {token.text}
+            </Text>
+          </Fragment>
+        );
+      if (token.isImage)
+        return (
+          <Fragment key={key}>
+            {i !== 0 && <span> </span>}
+            <Image
+              display="inline"
+              pos="relative"
+              bottom={-1}
+              src={token.imgSrc}
+              alt={token.text}
+              h="1.5rem"
+            />
+          </Fragment>
+        );
+
+      return (
+        <Fragment key={key}>
+          {i !== 0 && <span> </span>}
+          <Text as="span">{token.text}</Text>
+        </Fragment>
+      );
+    });
   }, []);
 
   return (
@@ -77,7 +104,7 @@ const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
         color={useColorModeValue("gray.600", "gray.400")}
         mr={1}
       >
-        {timestamp}
+        {_timestamp}
       </Text>
       {/* <Box
         as="span"
@@ -95,12 +122,15 @@ const ChatMessage: FC<ChatMessageProps> = ({ message }) => {
           rounded="sm"
         />
       </Box> */}
-      <Text as="span" fontWeight="bold" color={color}>
-        {message.displayName || message.username}:&nbsp;
+      <Text as="span" fontWeight="bold" color={_color}>
+        {username}:&nbsp;
       </Text>
-      <Text as="span" wordBreak="break-word">
-        {messageTokens}
-      </Text>
+      {messageFragments}
+      {/* <Text
+        dangerouslySetInnerHTML={{ __html:  }}
+        as="span"
+        wordBreak="break-word"
+      ></Text> */}
     </Box>
   );
 };

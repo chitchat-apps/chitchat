@@ -1,13 +1,11 @@
-import React, { CSSProperties } from "react";
+import { CSSProperties } from "react";
+import { Userstate } from "tmi.js";
 
 export interface Message {
-  id: string;
-  userId: string;
-  username: string;
-  displayName: string;
-  color: string;
+  channel: string;
   message: string;
   timestamp: string;
+  userstate: Userstate;
 }
 
 export type Status = "connected" | "disconnected" | "connecting";
@@ -28,23 +26,94 @@ export interface MessageToken {
   style?: CSSProperties;
   text: string;
   isLink?: boolean;
+  isImage?: boolean;
+  imgSrc?: string;
 }
 
-export const parseChatMessage = (message: string): MessageToken[] => {
-  const textArr = message.split(" ");
-  const elements: MessageToken[] = [];
+export interface EmoteReplacement {
+  start: number;
+  end: number;
+  id: string;
+}
 
-  for (const token of textArr) {
-    if (token.startsWith("@"))
-      elements.push({ text: token, style: { fontWeight: "bold" } });
-    else if (isLink(token)) elements.push({ text: token, isLink: true });
-    else elements.push({ text: token });
-  }
+export const getTwitchEmoteUrl = (emoteId: string, size: 1 | 2 | 3 | 4 = 1) =>
+  `https://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/${size}.0`;
 
-  return elements;
+export const parseChatMessage = (
+  message: string,
+  emotes?: { [emoteId: string]: string[] }
+): MessageToken[] => {
+  const tokens: MessageToken[] = [];
+  const messageArr = message.split(" ");
+
+  const emoteArr = getEmoteArray(emotes);
+
+  let startIndex = 0;
+  messageArr.forEach((word) => {
+    const indexes: { start: number; end: number } = {
+      start: startIndex,
+      end: startIndex + word.length,
+    };
+    startIndex += word.length + 1;
+
+    const emote = emoteArr.find(
+      (e) => e.start === indexes.start && e.end === indexes.end - 1
+    );
+    if (emotes && emote) {
+      tokens.push({
+        text: word,
+        isImage: true,
+        imgSrc: getTwitchEmoteUrl(emote.id),
+      });
+    } else if (isLink(word)) {
+      tokens.push({
+        text: word,
+        isLink: true,
+      });
+    } else {
+      tokens.push({
+        text: word,
+        style: styles.mention,
+      });
+    }
+  });
+
+  return tokens;
 };
 
-const isLink = (token: string): boolean => {
+function getEmoteArray(emotes: { [emoteId: string]: string[] } | undefined) {
+  const emotesArr: EmoteReplacement[] = [];
+  Object.keys(emotes || {}).forEach((key, i) => {
+    let em = (emotes || {})[key];
+    em.forEach((ele) => {
+      const indexes = ele.split("-");
+      let start = parseInt(indexes[0]);
+      let end = parseInt(indexes[1]);
+      emotesArr.push({
+        start,
+        end,
+        id: Object.keys(emotes || {})[i],
+      });
+    });
+  });
+
+  emotesArr.sort(compareEnd);
+  emotesArr.reverse();
+
+  return emotesArr;
+}
+
+function compareEnd(a: EmoteReplacement, b: EmoteReplacement) {
+  if (a.end < b.end) {
+    return -1;
+  }
+  if (a.end > b.end) {
+    return 1;
+  }
+  return 0;
+}
+
+function isLink(token: string) {
   const pattern = new RegExp(
     "^(https?:\\/\\/)?" + // protocol
       "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
@@ -55,4 +124,10 @@ const isLink = (token: string): boolean => {
     "i"
   ); // fragment locator
   return !!pattern.test(token);
+}
+
+const styles: { [key: string]: CSSProperties } = {
+  mention: {
+    fontWeight: "bold",
+  },
 };
