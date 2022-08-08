@@ -1,5 +1,6 @@
 import { CSSProperties } from "react";
-import { Userstate } from "tmi.js";
+import { BadgeInfo, Badges, Userstate } from "tmi.js";
+import { BadgeSet } from "../api/twitch";
 
 export interface Message {
   channel: string;
@@ -28,6 +29,12 @@ export interface MessageToken {
   isLink?: boolean;
   isImage?: boolean;
   imgSrc?: string;
+}
+
+export interface BadgeToken {
+  style?: CSSProperties;
+  src: string;
+  alt: string;
 }
 
 export interface EmoteReplacement {
@@ -124,6 +131,27 @@ function isLink(token: string) {
     "i"
   ); // fragment locator
   return !!pattern.test(token);
+}
+
+export function parseChatBadges(
+  badges: Partial<Badges> | undefined,
+  badgeSet: { [badge: string]: BadgeSet }
+) {
+  const badgeTokens: BadgeToken[] = [];
+  if (!badges) return badgeTokens;
+
+  Object.keys(badges).forEach((key) => {
+    const b = badgeSet[key];
+    const v = badges[key];
+    if (!b || !v) return;
+    const version = b.versions[v];
+    if (!version) return;
+    badgeTokens.push({
+      src: version.image_url_1x,
+      alt: key,
+    });
+  });
+  return badgeTokens;
 }
 
 const styles: { [key: string]: CSSProperties } = {

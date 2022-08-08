@@ -23,6 +23,8 @@ import TabProvider from "./context/tabContext";
 import TabPage from "./pages/TabPage";
 import useTabs from "./hooks/useTabs";
 import { getColor } from "./utils/chakra-color";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import BadgeProvider from "./context/badgeContext";
 
 const inputStyle: ComponentMultiStyleConfig = {
   parts: ["field"],
@@ -60,23 +62,29 @@ export const chakraTheme = extendTheme(
   }
 );
 
+const queryClient = new QueryClient();
+
 export const App: FC = () => {
   return (
     <ChakraProvider theme={chakraTheme}>
       <BrowserRouter>
-        <TabProvider>
-          <TabInitializerCheck>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<InitPage />} />
-                <Route path="/home" element={<HomePage />}>
-                  <Route path=":id" element={<TabPage />} />
-                </Route>
-                <Route path="/settings/*" element={<SettingsPage />} />
-              </Routes>
-            </Layout>
-          </TabInitializerCheck>
-        </TabProvider>
+        <QueryClientProvider client={queryClient}>
+          <TabProvider>
+            <BadgeProvider>
+              <TabInitializerCheck>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<InitPage />} />
+                    <Route path="/home" element={<HomePage />}>
+                      <Route path=":id" element={<TabPage />} />
+                    </Route>
+                    <Route path="/settings/*" element={<SettingsPage />} />
+                  </Routes>
+                </Layout>
+              </TabInitializerCheck>
+            </BadgeProvider>
+          </TabProvider>
+        </QueryClientProvider>
       </BrowserRouter>
     </ChakraProvider>
   );

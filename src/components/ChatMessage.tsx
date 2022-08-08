@@ -1,6 +1,6 @@
 import { Box, Image, Text, useColorModeValue } from "@chakra-ui/react";
 import { FC, Fragment, useMemo } from "react";
-import { parseChatMessage } from "../lib/chat";
+import { parseChatBadges, parseChatMessage } from "../lib/chat";
 import { randomColor } from "@chakra-ui/theme-tools";
 import {
   getLightnessOfColor,
@@ -8,6 +8,8 @@ import {
   rgbToHex,
   shadeColor,
 } from "../utils/color";
+import { BadgeInfo, Badges } from "tmi.js";
+import useBadges from "../hooks/useBadges";
 
 interface ChatMessageProps {
   id: string;
@@ -16,6 +18,7 @@ interface ChatMessageProps {
   username: string;
   timestamp: string;
   emotes?: { [emoteId: string]: string[] };
+  badges?: Badges;
 }
 
 const ChatMessage: FC<ChatMessageProps> = ({
@@ -25,7 +28,10 @@ const ChatMessage: FC<ChatMessageProps> = ({
   username,
   timestamp,
   emotes,
+  badges,
 }) => {
+  const badgeContext = useBadges();
+
   const _timestamp = useMemo(() => {
     const timestampArr = timestamp.split(":");
     return `${timestampArr[0]}:${timestampArr[1]}`;
@@ -64,17 +70,38 @@ const ChatMessage: FC<ChatMessageProps> = ({
         );
       if (token.isImage)
         return (
-          <Fragment key={key}>
-            {i !== 0 && <span> </span>}
+          <Text
+            as="span"
+            display="inline-flex"
+            key={key}
+            h="1rem"
+            w="1rem"
+            pos="relative"
+            justifyContent="center"
+            align="center"
+            mx="4px"
+          >
             <Image
-              display="inline"
-              pos="relative"
+              maxW="1.5rem"
+              display="inline-block"
+              pos="absolute"
               bottom={-1}
+              fallback={
+                <Box
+                  rounded="sm"
+                  border="1px solid"
+                  h="1rem"
+                  w="1rem"
+                  display="inline-block"
+                  pos="absolute"
+                  bottom="-3px"
+                />
+              }
               src={token.imgSrc}
               alt={token.text}
-              h="1.5rem"
             />
-          </Fragment>
+            &nbsp;
+          </Text>
         );
 
       return (
@@ -84,6 +111,43 @@ const ChatMessage: FC<ChatMessageProps> = ({
         </Fragment>
       );
     });
+  }, []);
+
+  const badgeFragments = useMemo(() => {
+    return parseChatBadges(badges, badgeContext.badges).map((token, i) => (
+      <Text
+        as="span"
+        display="inline-flex"
+        key={`${id}-${token.alt}`}
+        h="1rem"
+        w="1rem"
+        pos="relative"
+        justifyContent="center"
+        align="center"
+        ml={i === 0 ? 0 : 1}
+      >
+        <Image
+          src={token.src}
+          display="inline"
+          pos="relative"
+          bottom="-3px"
+          h="1rem"
+          w="1rem"
+          mr="2px"
+          fallback={
+            <Box
+              rounded="sm"
+              border="1px solid"
+              h="1rem"
+              w="1rem"
+              display="inline-block"
+              pos="absolute"
+              bottom="-3px"
+            />
+          }
+        />
+      </Text>
+    ));
   }, []);
 
   return (
@@ -103,34 +167,15 @@ const ChatMessage: FC<ChatMessageProps> = ({
         fontSize="xs"
         color={useColorModeValue("gray.600", "gray.400")}
         mr={1}
+        mb={1}
       >
         {_timestamp}
       </Text>
-      {/* <Box
-        as="span"
-        display="inline-flex"
-        justifyContent="center"
-        mr={1}
-        pos="relative"
-        top={0.5}
-      >
-        <Icon
-          as={BsDiamondFill}
-          color="white"
-          bg="pink.400"
-          p="1px"
-          rounded="sm"
-        />
-      </Box> */}
+      {badgeFragments}
       <Text as="span" fontWeight="bold" color={_color}>
         {username}:&nbsp;
       </Text>
       {messageFragments}
-      {/* <Text
-        dangerouslySetInnerHTML={{ __html:  }}
-        as="span"
-        wordBreak="break-word"
-      ></Text> */}
     </Box>
   );
 };

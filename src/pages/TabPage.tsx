@@ -20,6 +20,9 @@ import {
   Tooltip,
   Box,
   FormErrorMessage,
+  Spinner,
+  Center,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import React, { FC, useEffect, useRef, useState } from "react";
 import useChats from "../hooks/useChats";
@@ -27,9 +30,11 @@ import useTab from "../hooks/useTab";
 import useTabs from "../hooks/useTabs";
 import { ChannelTab, Tab, TabType } from "../lib/tab";
 import ChannelTabPage from "./ChannelTabPage";
+import useBadges from "../hooks/useBadges";
 
 const TabPage = () => {
   const tab = useTab();
+  const badges = useBadges();
 
   useEffect(() => {
     if (tab) localStorage.setItem("activeTab", tab.id);
@@ -37,9 +42,26 @@ const TabPage = () => {
   }, [tab]);
 
   if (!tab) return null;
-  if (tab instanceof ChannelTab) return <ChannelTabPage tab={tab} />;
+  if (tab instanceof ChannelTab)
+    return badges.isLoading ? (
+      <LoadingTab size="lg" />
+    ) : (
+      <ChannelTabPage tab={tab} />
+    );
   return <EmptyTab tab={tab} />;
 };
+
+const LoadingTab: FC<{ color?: string; size?: string }> = ({
+  color,
+  size = "md",
+}) => (
+  <Center h="full">
+    <Spinner
+      size={size}
+      color={color || useColorModeValue("purple.500", "purple.200")}
+    />
+  </Center>
+);
 
 const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
   const { joinChat } = useChats();
@@ -95,8 +117,8 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
         cursor="pointer"
         onClick={onOpen}
       >
-        <Heading>Click to add a chat</Heading>
-        <Heading size="lg">
+        <Heading size="lg">Click to add a chat</Heading>
+        <Heading size="md">
           <AddIcon />
         </Heading>
       </VStack>
@@ -105,13 +127,14 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
         onClose={onClose}
         isCentered
         initialFocusRef={initialFocusRef}
+        size="md"
         onCloseComplete={() => {
           setError(null);
           setChannel("");
         }}
       >
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent mx={2}>
           <ModalBody py={0}>
             <Tabs
               isFitted
@@ -120,19 +143,28 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
               colorScheme="purple"
               onChange={setTabIndex}
             >
-              <TabList>
-                <ChakraTab>Channel</ChakraTab>
-                <ChakraTab>Whisper</ChakraTab>
-                <ChakraTab>Mentions</ChakraTab>
-                <ChakraTab>Watching</ChakraTab>
+              <TabList overflowX="auto">
+                <ChakraTab fontSize="xs" py={1} px={1}>
+                  Channel
+                </ChakraTab>
+                <ChakraTab fontSize="xs" py={1} px={1}>
+                  Whisper
+                </ChakraTab>
+                <ChakraTab fontSize="xs" py={1} px={1}>
+                  Mentions
+                </ChakraTab>
+                <ChakraTab fontSize="xs" py={1} px={1}>
+                  Watching
+                </ChakraTab>
               </TabList>
 
               <TabPanels
-                h="100px"
+                h="65px"
                 pt={4}
                 display="flex"
                 alignItems="center"
                 justifyContent="stretch"
+                fontSize="sm"
               >
                 <TabPanel p={0} w="100%">
                   <form onSubmit={handleAdd}>
@@ -143,6 +175,7 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
                         colorScheme="purple"
                         placeholder="Channel name"
                         ref={initialFocusRef}
+                        size="sm"
                       />
                       <FormErrorMessage>{error}</FormErrorMessage>
                     </FormControl>
@@ -169,7 +202,13 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
           </ModalBody>
 
           <ModalFooter justifyContent="center">
-            <Button mr={3} onClick={onClose} flex="1" colorScheme="gray">
+            <Button
+              mr={3}
+              onClick={onClose}
+              flex="1"
+              colorScheme="gray"
+              size="xs"
+            >
               Cancel
             </Button>
             <Box flex="1">
@@ -188,6 +227,7 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
                   w="100%"
                   onClick={handleAdd}
                   isDisabled={tabIndex !== 0}
+                  size="xs"
                 >
                   Ok
                 </Button>

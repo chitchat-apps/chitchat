@@ -26,30 +26,56 @@ import { client } from "../context/chatContext";
 import { ChatUserstate } from "tmi.js";
 import { Message } from "../lib/chat";
 import { v4 } from "uuid";
+import BadgeProvider from "../context/badgeContext";
+import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import useBadges from "../hooks/useBadges";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
 }
 
 const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
+  const queryClient = useQueryClient();
   const { joinChat: addChat } = useChats();
   const chat = useChat(tab.channel);
+  const badges = useBadges();
+
   const [loading, setLoading] = useState<boolean | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const initialMessagesRef = useRef<HTMLDivElement>(null);
   const firstRender = useRef(true);
   const rootRef = useRef<Root | null>(null);
+  const shouldAddTempMessages = useRef<boolean>(false);
 
   const [stopScroll, setStopScroll] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [tempMessages, setTempMessages] = useState<Message[]>([]);
 
   const scrollToBottom = (override = false) => {
     if (!stopScroll && !override) {
       chatBottomRef.current?.scrollIntoView();
     }
   };
+
+  useEffect(() => {
+    if (stopScroll) {
+      if (!shouldAddTempMessages.current) setTempMessages([]);
+      shouldAddTempMessages.current = true;
+    } else {
+      setMessages((messages) => {
+        if (shouldAddTempMessages.current) {
+          shouldAddTempMessages.current = false;
+          messages.push(...tempMessages);
+        }
+        // limit the number of messages to 100
+        while (messages.length > 100) messages.shift();
+        return messages;
+      });
+      setTimeout(() => scrollToBottom(true), 500);
+    }
+  }, [stopScroll, tempMessages]);
 
   useEffect(() => {
     let ignore = false;
@@ -75,12 +101,15 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
           message,
           timestamp: new Date().toLocaleTimeString(),
         };
-        setMessages((messages) => {
+        const addMsg = (messages: Message[]) => {
           // limit the number of messages to 100
           while (messages.length > 100) messages.shift();
           messages.push(m);
           return messages;
-        });
+        };
+
+        if (stopScroll) setTempMessages(addMsg);
+        else setMessages(addMsg);
       }
     };
     client.on("message", onMessage);
@@ -91,7 +120,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
       ignore = true;
       client.removeListener("message", onMessage);
     };
-  }, [chat, loading, tab]);
+  }, [chat, loading, tab, stopScroll, tempMessages]);
 
   useEffect(() => {
     if (chat) {
@@ -112,10 +141,18 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
               message.userstate["display-name"] || message.userstate.username
             }
             timestamp={message.timestamp}
+            emotes={message.userstate.emotes}
+            badges={message.userstate.badges}
           />
         ));
         rootRef.current.render(
-          <ChakraProvider theme={chakraTheme}>{messages}</ChakraProvider>
+          <ChakraProvider theme={chakraTheme}>
+            <QueryClientProvider client={queryClient}>
+              <BadgeProvider initialBadges={badges.badges}>
+                {messages}
+              </BadgeProvider>
+            </QueryClientProvider>
+          </ChakraProvider>
         );
         setTimeout(scrollToBottom, 500);
       }
@@ -203,7 +240,6 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
           </Text>
         </VStack>
         {messages.map((m) => (
-          // <ChatMessage key={`${m.userstate.id}-${i}`} message={m} />
           <ChatMessage
             key={m.userstate.id || v4()}
             id={m.userstate.id || v4()}
@@ -212,6 +248,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
             username={m.userstate["display-name"] || m.userstate.username}
             timestamp={m.timestamp}
             emotes={m.userstate.emotes}
+            badges={m.userstate.badges}
           />
         ))}
         <Box ref={chatBottomRef} />
@@ -226,13 +263,14 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
           pos="absolute"
           bottom={12}
           p={2}
-          opacity={0.5}
+          opacity={0.75}
           _hover={{ opacity: 1 }}
           rounded="md"
           onClick={() => {
             setStopScroll(false);
             scrollToBottom(true);
           }}
+          size="sm"
         >
           <Text textAlign="center">Chat paused due to scroll</Text>
         </Button>

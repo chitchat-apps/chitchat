@@ -39,8 +39,8 @@ const NoTabs: FC = () => {
       cursor="pointer"
       onClick={handleAddTab}
     >
-      <Heading>Click to add a tab</Heading>
-      <Heading size="lg">
+      <Heading size="lg">Click to add a tab</Heading>
+      <Heading size="md">
         <AddIcon />
       </Heading>
     </VStack>
