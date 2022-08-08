@@ -1,4 +1,4 @@
-![alt text](https://avatars.githubusercontent.com/u/110630930?s=120&v=4) 
+![alt text](https://avatars.githubusercontent.com/u/110630930?s=90&v=4) 
 ChitChat
 ============
 
