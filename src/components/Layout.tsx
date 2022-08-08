@@ -7,7 +7,18 @@ export type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <Container m={0} p={0} maxW="none" minH="full" h="full">
+    <Container
+      m={0}
+      p={0}
+      maxW="none"
+      minH="full"
+      h="full"
+      maxH="100vh"
+      display="flex"
+      justifyContent="start"
+      alignItems="stretch"
+      flexDir="column"
+    >
       {children}
     </Container>
   );
