@@ -28,8 +28,8 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+      "category": "Entertainment",
+      "copyright": "© 2022 ChitChat. All rights reserved.",
       "deb": {
         "depends": []
       },
@@ -42,7 +42,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.chitchat.ChitChat",
-      "longDescription": "",
+      "longDescription": "A twitch.tv chat client.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -51,7 +51,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
+      "shortDescription": "A twitch.tv chat client.",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
