@@ -124,27 +124,33 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
 
   useEffect(() => {
     if (chat) {
-      if (firstRender.current && initialMessagesRef.current) {
+      if (
+        firstRender.current &&
+        initialMessagesRef.current &&
+        !rootRef.current
+      ) {
         firstRender.current = false;
 
-        // add all messages to the chat container
-        if (!rootRef.current)
-          rootRef.current = createRoot(initialMessagesRef.current);
+        const messages = chat.messages.map((message, i) => {
+          const id = (message.userstate.id || v4()) + "-" + i;
+          return (
+            <ChatMessage
+              key={id}
+              id={id}
+              message={message.message}
+              color={message.userstate.color}
+              username={
+                message.userstate["display-name"] || message.userstate.username
+              }
+              timestamp={message.timestamp}
+              emotes={message.userstate.emotes}
+              badges={message.userstate.badges}
+            />
+          );
+        });
 
-        const messages = chat.messages.map((message) => (
-          <ChatMessage
-            key={message.userstate.id || v4()}
-            id={message.userstate.id || v4()}
-            message={message.message}
-            color={message.userstate.color}
-            username={
-              message.userstate["display-name"] || message.userstate.username
-            }
-            timestamp={message.timestamp}
-            emotes={message.userstate.emotes}
-            badges={message.userstate.badges}
-          />
-        ));
+        // add all messages to the chat container
+        rootRef.current = createRoot(initialMessagesRef.current);
         rootRef.current.render(
           <ChakraProvider theme={chakraTheme}>
             <QueryClientProvider client={queryClient}>
@@ -154,6 +160,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
             </QueryClientProvider>
           </ChakraProvider>
         );
+
         setTimeout(scrollToBottom, 500);
       }
     }
@@ -239,10 +246,10 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
             Welcome to the chat room!
           </Text>
         </VStack>
-        {messages.map((m) => (
+        {messages.map((m, i) => (
           <ChatMessage
-            key={m.userstate.id || v4()}
-            id={m.userstate.id || v4()}
+            key={m.userstate.id || v4() + "-" + i}
+            id={m.userstate.id || v4() + "-" + i}
             message={m.message}
             color={m.userstate.color}
             username={m.userstate["display-name"] || m.userstate.username}
