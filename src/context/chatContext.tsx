@@ -150,6 +150,7 @@ const ChatProvider: FC<{
       value={{
         chats,
         status,
+        isLoading: false,
         joinChat,
         leaveChat,
       }}

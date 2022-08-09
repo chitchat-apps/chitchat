@@ -25,6 +25,7 @@ import useTabs from "./hooks/useTabs";
 import { getColor } from "./utils/chakra-color";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import BadgeProvider from "./context/badgeContext";
+import EmoteProvider from "./context/emotesContext";
 
 const inputStyle: ComponentMultiStyleConfig = {
   parts: ["field"],
@@ -70,19 +71,21 @@ export const App: FC = () => {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <TabProvider>
-            <BadgeProvider>
-              <TabInitializerCheck>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<InitPage />} />
-                    <Route path="/home" element={<HomePage />}>
-                      <Route path=":id" element={<TabPage />} />
-                    </Route>
-                    <Route path="/settings/*" element={<SettingsPage />} />
-                  </Routes>
-                </Layout>
-              </TabInitializerCheck>
-            </BadgeProvider>
+            <EmoteProvider>
+              <BadgeProvider>
+                <TabInitializerCheck>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<InitPage />} />
+                      <Route path="/home" element={<HomePage />}>
+                        <Route path=":id" element={<TabPage />} />
+                      </Route>
+                      <Route path="/settings/*" element={<SettingsPage />} />
+                    </Routes>
+                  </Layout>
+                </TabInitializerCheck>
+              </BadgeProvider>
+            </EmoteProvider>
           </TabProvider>
         </QueryClientProvider>
       </BrowserRouter>
