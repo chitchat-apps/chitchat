@@ -1,5 +1,6 @@
 import { CSSProperties } from "react";
-import { BadgeInfo, Badges, Userstate } from "tmi.js";
+import { Badges, Userstate } from "tmi.js";
+import { BttvEmote } from "../api/bttv";
 import { BadgeSet } from "../api/twitch";
 
 export interface Message {
@@ -19,6 +20,7 @@ export interface Chat {
 export interface IChatContext {
   chats: { [key: string]: Chat };
   status: Status;
+  isLoading: boolean;
   joinChat: (channel: string) => Promise<void>;
   leaveChat: (channel: string) => Promise<void>;
 }
@@ -46,9 +48,13 @@ export interface EmoteReplacement {
 export const getTwitchEmoteUrl = (emoteId: string, size: 1 | 2 | 3 | 4 = 1) =>
   `https://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/${size}.0`;
 
+export const getBttvEmoteUrl = (emoteId: string, size: 1 | 2 | 3 = 1) =>
+  `https://cdn.betterttv.net/emote/${emoteId}/${size}x`;
+
 export const parseChatMessage = (
   message: string,
-  emotes?: { [emoteId: string]: string[] }
+  emotes?: { [emoteId: string]: string[] },
+  bttvEmotes: BttvEmote[] = []
 ): MessageToken[] => {
   const tokens: MessageToken[] = [];
   const messageArr = message.split(" ");
@@ -63,26 +69,42 @@ export const parseChatMessage = (
     };
     startIndex += word.length + 1;
 
-    const emote = emoteArr.find(
-      (e) => e.start === indexes.start && e.end === indexes.end - 1
-    );
-    if (emotes && emote) {
+    if (emotes) {
+      const twitchEmote = emoteArr.find(
+        (e) => e.start === indexes.start && e.end === indexes.end - 1
+      );
+      if (twitchEmote) {
+        tokens.push({
+          text: word,
+          isImage: true,
+          imgSrc: getTwitchEmoteUrl(twitchEmote.id),
+        });
+        return;
+      }
+    }
+
+    const bttvEmote = bttvEmotes.find((e) => e.code === word);
+    if (bttvEmote) {
       tokens.push({
         text: word,
         isImage: true,
-        imgSrc: getTwitchEmoteUrl(emote.id),
+        imgSrc: getBttvEmoteUrl(bttvEmote.id),
       });
-    } else if (isLink(word)) {
+      return;
+    }
+
+    if (isLink(word)) {
       tokens.push({
         text: word,
         isLink: true,
       });
-    } else {
-      tokens.push({
-        text: word,
-        style: styles.mention,
-      });
+      return;
     }
+
+    tokens.push({
+      text: word,
+      style: styles.mention,
+    });
   });
 
   return tokens;
