@@ -10,6 +10,7 @@ import {
 } from "../utils/color";
 import { Badges } from "tmi.js";
 import useBadges from "../hooks/useBadges";
+import useEmotes from "../hooks/useEmotes";
 
 interface ChatMessageProps {
   id: string;
@@ -30,6 +31,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
   emotes,
   badges,
 }) => {
+  const { bttvEmotes } = useEmotes();
   const badgeContext = useBadges();
 
   const _timestamp = useMemo(() => {
@@ -51,7 +53,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
   const purpleColor = useColorModeValue("purple.500", "purple.200");
 
   const messageFragments = useMemo(() => {
-    return parseChatMessage(message, emotes).map((token, i) => {
+    return parseChatMessage(message, emotes, bttvEmotes).map((token, i) => {
       const key = `${id}-${token.text}-${i}`;
 
       if (token.isLink)

@@ -22,13 +22,15 @@ import LiveIndicator from "../components/LiveIndicator";
 import useChat from "../hooks/useChat";
 import useChats from "../hooks/useChats";
 import { ChannelTab } from "../lib/tab";
-import { client } from "../context/chatContext";
 import { ChatUserstate } from "tmi.js";
 import { Message } from "../lib/chat";
 import { v4 } from "uuid";
 import BadgeProvider from "../context/badgeContext";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import useBadges from "../hooks/useBadges";
+import EmoteProvider from "../context/emotesContext";
+import useEmotes from "../hooks/useEmotes";
+import { client } from "../context/chatContext";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
@@ -39,6 +41,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
   const { joinChat: addChat } = useChats();
   const chat = useChat(tab.channel);
   const badges = useBadges();
+  const emotes = useEmotes();
 
   const [loading, setLoading] = useState<boolean | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -154,9 +157,11 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
         rootRef.current.render(
           <ChakraProvider theme={chakraTheme}>
             <QueryClientProvider client={queryClient}>
-              <BadgeProvider initialBadges={badges.badges}>
-                {messages}
-              </BadgeProvider>
+              <EmoteProvider initialGlobalBttvEmotes={emotes.bttvEmotes}>
+                <BadgeProvider initialBadges={badges.badges}>
+                  {messages}
+                </BadgeProvider>
+              </EmoteProvider>
             </QueryClientProvider>
           </ChakraProvider>
         );

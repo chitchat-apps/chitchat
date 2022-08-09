@@ -31,10 +31,13 @@ import useTabs from "../hooks/useTabs";
 import { ChannelTab, Tab, TabType } from "../lib/tab";
 import ChannelTabPage from "./ChannelTabPage";
 import useBadges from "../hooks/useBadges";
+import useEmotes from "../hooks/useEmotes";
 
 const TabPage = () => {
   const tab = useTab();
-  const badges = useBadges();
+  const { isLoading: isLoadingChats } = useChats();
+  const { isLoading: isLoadingBadges } = useBadges();
+  const { isLoading: isLoadingEmotes } = useEmotes();
 
   useEffect(() => {
     if (tab) localStorage.setItem("activeTab", tab.id);
@@ -42,12 +45,10 @@ const TabPage = () => {
   }, [tab]);
 
   if (!tab) return null;
+
+  const isLoading = isLoadingBadges || isLoadingChats || isLoadingEmotes;
   if (tab instanceof ChannelTab)
-    return badges.isLoading ? (
-      <LoadingTab size="lg" />
-    ) : (
-      <ChannelTabPage tab={tab} />
-    );
+    return isLoading ? <LoadingTab size="lg" /> : <ChannelTabPage tab={tab} />;
   return <EmptyTab tab={tab} />;
 };
 
@@ -67,15 +68,14 @@ const EmptyTab: FC<{ tab: Tab }> = ({ tab }) => {
   const { joinChat } = useChats();
   const { updateTab } = useTabs();
   const initialFocusRef = useRef<HTMLInputElement>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: false }); // TODO : Open modal on mount?
+  const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: true });
   const [tabIndex, setTabIndex] = useState(0);
   const [channel, setChannel] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // TODO : Open modal on mount?
-  // useEffect(() => {
-  //   onOpen();
-  // }, [tab]);
+  useEffect(() => {
+    onOpen();
+  }, [tab]);
 
   const handleAdd = async (
     e:
