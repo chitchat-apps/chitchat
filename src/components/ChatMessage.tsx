@@ -1,4 +1,4 @@
-import { Box, Image, Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Img, Text, useColorModeValue } from "@chakra-ui/react";
 import { FC, Fragment, useMemo } from "react";
 import { parseChatBadges, parseChatMessage } from "../lib/chat";
 import { randomColor } from "@chakra-ui/theme-tools";
@@ -8,7 +8,7 @@ import {
   rgbToHex,
   shadeColor,
 } from "../utils/color";
-import { BadgeInfo, Badges } from "tmi.js";
+import { Badges } from "tmi.js";
 import useBadges from "../hooks/useBadges";
 
 interface ChatMessageProps {
@@ -83,22 +83,11 @@ const ChatMessage: FC<ChatMessageProps> = ({
             align="center"
             mx="4px"
           >
-            <Image
+            <Img
               maxW="1.5rem"
               display="inline-block"
               pos="absolute"
               bottom={-1}
-              fallback={
-                <Box
-                  rounded="sm"
-                  border="1px solid"
-                  h="1rem"
-                  w="1rem"
-                  display="inline-block"
-                  pos="absolute"
-                  bottom="-3px"
-                />
-              }
               src={token.imgSrc}
               alt={token.text}
             />
@@ -128,7 +117,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
         align="center"
         ml={i === 0 ? 0 : 1}
       >
-        <Image
+        <Img
           src={token.src}
           display="inline"
           pos="relative"
@@ -136,17 +125,6 @@ const ChatMessage: FC<ChatMessageProps> = ({
           h="1rem"
           w="1rem"
           mr="2px"
-          fallback={
-            <Box
-              rounded="sm"
-              border="1px solid"
-              h="1rem"
-              w="1rem"
-              display="inline-block"
-              pos="absolute"
-              bottom="-3px"
-            />
-          }
         />
       </Text>
     ));
