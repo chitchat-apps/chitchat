@@ -131,8 +131,8 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
       ) {
         firstRender.current = false;
 
-        const messages = chat.messages.map((message) => {
-          const id = v4();
+        const messages = chat.messages.map((message, i) => {
+          const id = (message.userstate.id || v4()) + "-" + i;
           return (
             <ChatMessage
               key={id}
@@ -246,10 +246,10 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
             Welcome to the chat room!
           </Text>
         </VStack>
-        {messages.map((m) => (
+        {messages.map((m, i) => (
           <ChatMessage
-            key={m.userstate.id || v4()}
-            id={m.userstate.id || v4()}
+            key={m.userstate.id || v4() + "-" + i}
+            id={m.userstate.id || v4() + "-" + i}
             message={m.message}
             color={m.userstate.color}
             username={m.userstate["display-name"] || m.userstate.username}
