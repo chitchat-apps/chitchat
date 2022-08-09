@@ -63,6 +63,8 @@ const ChatMessage: FC<ChatMessageProps> = ({
               href={token.text}
               color={purpleColor}
               textDecor="underline"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               {token.text}
             </Text>
