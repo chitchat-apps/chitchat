@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:mac": "yarn tauri build --target aarch64-apple-darwin && yarn tauri build --target x86_64-apple-darwin",
     "preview": "vite preview",
     "tauri": "tauri"
   },
