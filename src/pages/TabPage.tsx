@@ -32,12 +32,23 @@ import { ChannelTab, Tab, TabType } from "../lib/tab";
 import ChannelTabPage from "./ChannelTabPage";
 import useBadges from "../hooks/useBadges";
 import useEmotes from "../hooks/useEmotes";
+import { useQuery } from "@tanstack/react-query";
+import { getUser } from "../api/chitchat";
 
 const TabPage = () => {
   const tab = useTab();
   const { isLoading: isLoadingChats } = useChats();
   const { isLoading: isLoadingBadges } = useBadges();
   const { isLoading: isLoadingEmotes } = useEmotes();
+
+  const { data: channel, isLoading: isLoadingChannel } = useQuery(
+    ["channel", (tab as ChannelTab | undefined)?.channel],
+    () => getUser((tab as ChannelTab).channel),
+    {
+      enabled: tab instanceof ChannelTab,
+      refetchInterval: 1000 * 60 * 2, // 2 minutes
+    }
+  );
 
   useEffect(() => {
     if (tab) localStorage.setItem("activeTab", tab.id);
@@ -46,9 +57,14 @@ const TabPage = () => {
 
   if (!tab) return null;
 
-  const isLoading = isLoadingBadges || isLoadingChats || isLoadingEmotes;
+  const isLoading =
+    isLoadingBadges || isLoadingChats || isLoadingEmotes || isLoadingChannel;
   if (tab instanceof ChannelTab)
-    return isLoading ? <LoadingTab size="lg" /> : <ChannelTabPage tab={tab} />;
+    return isLoading ? (
+      <LoadingTab size="lg" />
+    ) : (
+      <ChannelTabPage tab={tab} channel={channel} />
+    );
   return <EmptyTab tab={tab} />;
 };
 

@@ -6,6 +6,8 @@ import useTabs from "../hooks/useTabs";
 import { getPrevOrNextIndex } from "../utils/lists";
 import { ChannelTab, Tab } from "../lib/tab";
 import useChats from "../hooks/useChats";
+import LiveIndicator from "./LiveIndicator";
+import useStream from "../hooks/useStream";
 
 export type TopBarTabProps = {
   icon?: React.ReactElement;
@@ -15,6 +17,7 @@ export type TopBarTabProps = {
 const TopBarTab: FC<TopBarTabProps> = (props) => {
   const { tabs, removeTab } = useTabs();
   const { leaveChat } = useChats();
+  const stream = useStream((props.tab as ChannelTab)?.channel);
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = location.pathname === `/home/${props.tab.id}`;
@@ -51,6 +54,13 @@ const TopBarTab: FC<TopBarTabProps> = (props) => {
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
+      <LiveIndicator
+        size={2}
+        m={0}
+        mr={1.5}
+        tooltipPlacement="bottom"
+        isLive={stream !== undefined}
+      />
       {props.tab.label}{" "}
       {(hovering || isActive) && (
         <CloseIcon

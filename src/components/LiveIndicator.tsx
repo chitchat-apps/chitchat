@@ -2,6 +2,8 @@ import {
   Box,
   Circle,
   keyframes,
+  PlacementWithLogical,
+  SquareProps,
   Tooltip,
   useColorModeValue,
   useTheme,
@@ -9,16 +11,23 @@ import {
 import { FC } from "react";
 import { getColor } from "../utils/chakra-color";
 
-export interface LiveIndicatorProps {
+export interface LiveIndicatorProps extends SquareProps {
   isLive?: boolean;
   isDisabled?: boolean;
   divWhenDisabled?: boolean;
+  size?: number;
+  noTooltip?: boolean;
+  tooltipPlacement?: PlacementWithLogical;
 }
 
 const LiveIndicator: FC<LiveIndicatorProps> = ({
   isLive = true,
   isDisabled = false,
   divWhenDisabled = false,
+  noTooltip = false,
+  size = 3.5,
+  tooltipPlacement = "right",
+  ...restProps
 }) => {
   const theme = useTheme();
   const bg = useColorModeValue("red.500", "red.400");
@@ -45,28 +54,33 @@ const LiveIndicator: FC<LiveIndicatorProps> = ({
     return (
       <Tooltip
         label="Live"
-        placement="right"
+        placement={tooltipPlacement}
         hasArrow
         arrowSize={4}
         fontSize="xs"
+        isDisabled={noTooltip}
+        openDelay={500}
       >
-        <Circle ml={2} animation={pulseAnimation} size={3.5} bg={bg} />
+        <Circle
+          ml={2}
+          animation={pulseAnimation}
+          size={size}
+          bg={bg}
+          {...restProps}
+        />
       </Tooltip>
     );
   return (
     <Tooltip
       label="Offline"
-      placement="right"
+      placement={tooltipPlacement}
       hasArrow
       arrowSize={4}
       fontSize="xs"
+      isDisabled={noTooltip}
+      openDelay={500}
     >
-      <Circle
-        ml={2}
-        size={3.5}
-        bg="gray.500"
-        boxShadow={`0 0 0 5px ${getColor(theme, "gray.500")}40`}
-      />
+      <Circle ml={2} size={size} bg="gray.500" {...restProps} />
     </Tooltip>
   );
 };
