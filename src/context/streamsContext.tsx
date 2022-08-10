@@ -15,8 +15,7 @@ export const StreamsContext = createContext<IChannelContext | null>(null);
 const StreamsProvider: FC<{
   children: ReactNode;
   initialStreams?: string[];
-  initialStreamsData?: Stream[];
-}> = ({ children, initialStreams = [], initialStreamsData = [] }) => {
+}> = ({ children, initialStreams = [] }) => {
   const { channels } = useChats();
 
   const [streams, setStreams] = useState<string[]>(initialStreams);
@@ -25,7 +24,6 @@ const StreamsProvider: FC<{
     ["streams", ...streams],
     () => getStreams(streams),
     {
-      initialData: initialStreamsData,
       refetchInterval: 1000 * 60 * 2, // 2 minutes
       enabled: streams.length > 0,
     }
@@ -43,7 +41,7 @@ const StreamsProvider: FC<{
     <StreamsContext.Provider
       value={{
         isLoading: streamsQuery.isLoading,
-        streams: streamsQuery.data,
+        streams: streamsQuery.data || [],
         addStream,
         removeStream,
       }}
