@@ -63,7 +63,14 @@ export const chakraTheme = extendTheme(
   }
 );
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      cacheTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 1, // 1 minutes
+    },
+  },
+});
 
 export const App: FC = () => {
   return (

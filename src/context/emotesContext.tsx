@@ -18,7 +18,7 @@ const EmoteProvider: FC<{
     getBttvGlobalEmotes,
     {
       initialData: initialGlobalBttvEmotes,
-      refetchOnWindowFocus: false,
+      refetchInterval: 1000 * 60 * 10, // 10 minutes
     }
   );
 

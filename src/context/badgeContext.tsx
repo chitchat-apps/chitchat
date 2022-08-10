@@ -15,7 +15,7 @@ const BadgeProvider: FC<{
 }> = ({ children, initialBadges }) => {
   const globalQuery = useQuery(["globalBadges"], getGlobalBadges, {
     initialData: initialBadges || {},
-    refetchOnWindowFocus: false,
+    refetchInterval: 1000 * 60 * 10, // 10 minutes
   });
 
   return (
