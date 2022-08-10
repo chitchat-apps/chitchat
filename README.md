@@ -6,4 +6,4 @@ A cross-platform [twitch.tv](https://twitch.tv) chat client.
 
 Download
 ============
-The lates version of the ChitChat client is available to download [here](https://github.com/chitchat-apps/chitchat/releases/latest).
+The lates version of the ChitChat client is available to download [here](https://chitchat-apps.github.io/#downloads).
