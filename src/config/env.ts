@@ -5,6 +5,6 @@ const DEBUG = process.env.NODE_ENV !== "production";
  *
  * Example: http://localhost:8000
  */
-export const CHITCHAT_API_URL =
-  process.env.CHITCHAT_API_URL ||
-  (DEBUG ? "http://localhost:8000" : "https://chitchat-apps-api.herokuapp.com");
+export const CHITCHAT_API_URL = DEBUG
+  ? "http://localhost:8000"
+  : "https://chitchat-apps-api.herokuapp.com";
