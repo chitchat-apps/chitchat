@@ -6,10 +6,12 @@ import {
   Divider,
   Heading,
   HStack,
+  Img,
   Input,
   InputGroup,
   InputRightAddon,
   Text,
+  Tooltip,
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
@@ -31,17 +33,21 @@ import useBadges from "../hooks/useBadges";
 import EmoteProvider from "../context/emotesContext";
 import useEmotes from "../hooks/useEmotes";
 import { client } from "../context/chatContext";
+import { BroadcasterType, User } from "../api/chitchat";
+import useStream from "../hooks/useStream";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
+  channel?: User;
 }
 
-const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
+const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab, channel }) => {
   const queryClient = useQueryClient();
   const { joinChat: addChat } = useChats();
   const chat = useChat(tab.channel);
   const badges = useBadges();
   const emotes = useEmotes();
+  const stream = useStream(tab.channel);
 
   const [loading, setLoading] = useState<boolean | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -204,17 +210,40 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({ tab }) => {
         bg={useColorModeValue("blackAlpha.50", "whiteAlpha.50")}
       >
         {/* <Box /> */}
-        <LiveIndicator divWhenDisabled isLive />
-        <Heading
-          size="sm"
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
+        <HStack spacing={1}>
+          <LiveIndicator
+            divWhenDisabled
+            isLive={stream !== undefined}
+            noTooltip
+          />
+          <Text fontWeight="bold" fontSize="xs">
+            {stream === undefined ? "Offline" : "Live"}
+          </Text>
+        </HStack>
+        <Tooltip
+          placement="right"
+          label="Partner"
+          isDisabled={channel?.broadcasterType !== BroadcasterType.Partner}
+          hasArrow
+          arrowSize={4}
+          openDelay={500}
         >
-          {/* TODO : Change to channel picture */}
-          <Avatar size="xs" mr={1} name={tab.channel} />
-          {tab.channel}
-        </Heading>
+          <Heading
+            size="sm"
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            {/* TODO : Change to channel picture */}
+            <Avatar
+              size="xs"
+              mr={1}
+              name={tab.channel}
+              src={channel?.profileImageUrl}
+            />
+            {channel?.displayName}
+          </Heading>
+        </Tooltip>
         <ChannelContextMenu />
       </HStack>
 

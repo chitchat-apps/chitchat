@@ -26,6 +26,7 @@ import { getColor } from "./utils/chakra-color";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import BadgeProvider from "./context/badgeContext";
 import EmoteProvider from "./context/emotesContext";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const inputStyle: ComponentMultiStyleConfig = {
   parts: ["field"],
@@ -77,6 +78,7 @@ export const App: FC = () => {
     <ChakraProvider theme={chakraTheme}>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
+          <ReactQueryDevtools initialIsOpen={false} />
           <TabProvider>
             <EmoteProvider>
               <BadgeProvider>

@@ -36,6 +36,8 @@ const ChatProvider: FC<{
 }> = ({ children }) => {
   const tabs = useTabs();
 
+  const [channels, setChannels] = useState<string[]>([]);
+
   const [chats, setChats] = useState<{ [key: string]: Chat }>(() => {
     const chats: { [key: string]: Chat } = {};
     tabs?.tabs.forEach((tab) => {
@@ -55,6 +57,7 @@ const ChatProvider: FC<{
         };
       }
     });
+    setChannels(Object.keys(chats));
     return chats;
   });
   const [status, setStatus] = useState<Status>("disconnected");
@@ -127,6 +130,7 @@ const ChatProvider: FC<{
         status: "connected",
       };
       setChats({ ...chats, [channel]: chat });
+      setChannels([...channels, channel]);
     } catch (error) {
       console.error(error);
     }
@@ -140,6 +144,7 @@ const ChatProvider: FC<{
       const newChats = { ...chats };
       delete newChats[channel];
       setChats(newChats);
+      setChannels(channels.filter((c) => c !== channel));
     } catch (error) {
       console.error(error);
     }
@@ -150,6 +155,7 @@ const ChatProvider: FC<{
       value={{
         chats,
         status,
+        channels,
         isLoading: false,
         joinChat,
         leaveChat,
