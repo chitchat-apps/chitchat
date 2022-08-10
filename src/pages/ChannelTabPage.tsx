@@ -6,7 +6,6 @@ import {
   Divider,
   Heading,
   HStack,
-  Img,
   Input,
   InputGroup,
   InputRightAddon,
