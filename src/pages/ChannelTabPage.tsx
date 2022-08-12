@@ -35,17 +35,20 @@ import { client } from "../context/chatContext";
 import { BroadcasterType, User } from "../api/chitchat";
 import useStream from "../hooks/useStream";
 import { BttvChannelEmote } from "../api/bttv";
+import { FfzChannelEmote } from "../api/ffz";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
   channel?: User;
   bttvEmotes?: BttvChannelEmote[];
+  ffzEmotes?: FfzChannelEmote[];
 }
 
 const ChannelTabPage: FC<ChannelTabPageProps> = ({
   tab,
   channel,
   bttvEmotes = [],
+  ffzEmotes = [],
 }) => {
   const queryClient = useQueryClient();
   const { joinChat: addChat } = useChats();
@@ -160,6 +163,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
               emotes={message.userstate.emotes}
               badges={message.userstate.badges}
               bttvEmotes={bttvEmotes}
+              ffzEmotes={ffzEmotes}
             />
           );
         });
@@ -297,6 +301,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
             emotes={m.userstate.emotes}
             badges={m.userstate.badges}
             bttvEmotes={bttvEmotes}
+            ffzEmotes={ffzEmotes}
           />
         ))}
         <Box ref={chatBottomRef} />
