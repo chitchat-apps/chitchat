@@ -34,6 +34,7 @@ import useBadges from "../hooks/useBadges";
 import useEmotes from "../hooks/useEmotes";
 import { useQuery } from "@tanstack/react-query";
 import { getUser } from "../api/chitchat";
+import { getBttvEmotes } from "../api/bttv";
 
 const TabPage = () => {
   const tab = useTab();
@@ -50,6 +51,15 @@ const TabPage = () => {
     }
   );
 
+  const { data: bttvEmotes, isLoading: isLoadingBttvEmotes } = useQuery(
+    ["bttvEmotes", channel?.id],
+    () => getBttvEmotes(channel?.id ?? ""),
+    {
+      enabled: tab instanceof ChannelTab && !!channel,
+      refetchInterval: 1000 * 60 * 5, // 5 minutes
+    }
+  );
+
   useEffect(() => {
     if (tab) localStorage.setItem("activeTab", tab.id);
     else localStorage.removeItem("activeTab");
@@ -58,12 +68,16 @@ const TabPage = () => {
   if (!tab) return null;
 
   const isLoading =
-    isLoadingBadges || isLoadingChats || isLoadingEmotes || isLoadingChannel;
+    isLoadingBadges ||
+    isLoadingChats ||
+    isLoadingEmotes ||
+    isLoadingChannel ||
+    isLoadingBttvEmotes;
   if (tab instanceof ChannelTab)
     return isLoading ? (
       <LoadingTab size="lg" />
     ) : (
-      <ChannelTabPage tab={tab} channel={channel} />
+      <ChannelTabPage tab={tab} channel={channel} bttvEmotes={bttvEmotes} />
     );
   return <EmptyTab tab={tab} />;
 };
