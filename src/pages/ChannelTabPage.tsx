@@ -36,12 +36,14 @@ import { BroadcasterType, User } from "../api/chitchat";
 import useStream from "../hooks/useStream";
 import { BttvChannelEmote } from "../api/bttv";
 import { FfzChannelEmote } from "../api/ffz";
+import { SevenTvChannelEmote } from "../api/sevenTv";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
   channel?: User;
   bttvEmotes?: BttvChannelEmote[];
   ffzEmotes?: FfzChannelEmote[];
+  sevenTvEmotes?: SevenTvChannelEmote[];
 }
 
 const ChannelTabPage: FC<ChannelTabPageProps> = ({
@@ -49,6 +51,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
   channel,
   bttvEmotes = [],
   ffzEmotes = [],
+  sevenTvEmotes = [],
 }) => {
   const queryClient = useQueryClient();
   const { joinChat: addChat } = useChats();
@@ -164,6 +167,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
               badges={message.userstate.badges}
               bttvEmotes={bttvEmotes}
               ffzEmotes={ffzEmotes}
+              sevenTvEmotes={sevenTvEmotes}
             />
           );
         });
@@ -302,6 +306,7 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
             badges={m.userstate.badges}
             bttvEmotes={bttvEmotes}
             ffzEmotes={ffzEmotes}
+            sevenTvEmotes={sevenTvEmotes}
           />
         ))}
         <Box ref={chatBottomRef} />
