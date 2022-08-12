@@ -34,6 +34,8 @@ import useBadges from "../hooks/useBadges";
 import useEmotes from "../hooks/useEmotes";
 import { useQuery } from "@tanstack/react-query";
 import { getUser } from "../api/chitchat";
+import { getBttvEmotes } from "../api/bttv";
+import { getFfzEmotes } from "../api/ffz";
 
 const TabPage = () => {
   const tab = useTab();
@@ -50,6 +52,24 @@ const TabPage = () => {
     }
   );
 
+  const { data: bttvEmotes, isLoading: isLoadingBttvEmotes } = useQuery(
+    ["bttvEmotes", channel?.id],
+    () => getBttvEmotes(channel?.id ?? ""),
+    {
+      enabled: tab instanceof ChannelTab && !!channel,
+      refetchInterval: 1000 * 60 * 5, // 5 minutes
+    }
+  );
+
+  const { data: ffzEmotes, isLoading: isLoadingFfzEmotes } = useQuery(
+    ["ffzEmotes", channel?.id],
+    () => getFfzEmotes(channel?.id ?? ""),
+    {
+      enabled: tab instanceof ChannelTab && !!channel,
+      refetchInterval: 1000 * 60 * 5, // 5 minutes
+    }
+  );
+
   useEffect(() => {
     if (tab) localStorage.setItem("activeTab", tab.id);
     else localStorage.removeItem("activeTab");
@@ -58,12 +78,22 @@ const TabPage = () => {
   if (!tab) return null;
 
   const isLoading =
-    isLoadingBadges || isLoadingChats || isLoadingEmotes || isLoadingChannel;
+    isLoadingBadges ||
+    isLoadingChats ||
+    isLoadingEmotes ||
+    isLoadingChannel ||
+    isLoadingBttvEmotes ||
+    isLoadingFfzEmotes;
   if (tab instanceof ChannelTab)
     return isLoading ? (
       <LoadingTab size="lg" />
     ) : (
-      <ChannelTabPage tab={tab} channel={channel} />
+      <ChannelTabPage
+        tab={tab}
+        channel={channel}
+        bttvEmotes={bttvEmotes}
+        ffzEmotes={ffzEmotes}
+      />
     );
   return <EmptyTab tab={tab} />;
 };

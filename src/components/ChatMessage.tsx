@@ -11,6 +11,8 @@ import {
 import { Badges } from "tmi.js";
 import useBadges from "../hooks/useBadges";
 import useEmotes from "../hooks/useEmotes";
+import { BttvChannelEmote } from "../api/bttv";
+import { FfzChannelEmote } from "../api/ffz";
 
 interface ChatMessageProps {
   id: string;
@@ -20,6 +22,8 @@ interface ChatMessageProps {
   timestamp: string;
   emotes?: { [emoteId: string]: string[] };
   badges?: Badges;
+  bttvEmotes: BttvChannelEmote[];
+  ffzEmotes: FfzChannelEmote[];
 }
 
 const ChatMessage: FC<ChatMessageProps> = ({
@@ -30,6 +34,8 @@ const ChatMessage: FC<ChatMessageProps> = ({
   timestamp,
   emotes,
   badges,
+  bttvEmotes: bttvChannelEmotes = [],
+  ffzEmotes: ffzChannelEmotes = [],
 }) => {
   const { bttvEmotes } = useEmotes();
   const badgeContext = useBadges();
@@ -53,7 +59,12 @@ const ChatMessage: FC<ChatMessageProps> = ({
   const purpleColor = useColorModeValue("purple.500", "purple.200");
 
   const messageFragments = useMemo(() => {
-    return parseChatMessage(message, emotes, bttvEmotes).map((token, i) => {
+    return parseChatMessage({
+      message,
+      emotes,
+      bttvEmotes: bttvEmotes.concat(bttvChannelEmotes),
+      ffzEmotes: ffzChannelEmotes,
+    }).map((token, i) => {
       const key = `${id}-${token.text}-${i}`;
 
       if (token.isLink)
@@ -78,22 +89,22 @@ const ChatMessage: FC<ChatMessageProps> = ({
             as="span"
             display="inline-flex"
             key={key}
-            h="1rem"
-            w="1rem"
+            h="1.5rem"
             pos="relative"
             justifyContent="center"
             align="center"
-            mx="4px"
+            mx="1px"
           >
             <Img
-              maxW="1.5rem"
+              maxH="1.4rem"
+              h="100%"
+              w="auto"
               display="inline-block"
-              pos="absolute"
-              bottom={-1}
+              pos="relative"
+              bottom={0}
               src={token.imgSrc}
-              alt={token.text}
+              alt={` ${token.text}`}
             />
-            &nbsp;
           </Text>
         );
 

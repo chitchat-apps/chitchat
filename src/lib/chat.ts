@@ -1,6 +1,7 @@
 import { CSSProperties } from "react";
 import { Badges, Userstate } from "tmi.js";
 import { BttvEmote } from "../api/bttv";
+import { FfzChannelEmote } from "../api/ffz";
 import { BadgeSet } from "../api/twitch";
 
 export interface Message {
@@ -52,11 +53,22 @@ export const getTwitchEmoteUrl = (emoteId: string, size: 1 | 2 | 3 | 4 = 1) =>
 export const getBttvEmoteUrl = (emoteId: string, size: 1 | 2 | 3 = 1) =>
   `https://cdn.betterttv.net/emote/${emoteId}/${size}x`;
 
-export const parseChatMessage = (
-  message: string,
-  emotes?: { [emoteId: string]: string[] },
-  bttvEmotes: BttvEmote[] = []
-): MessageToken[] => {
+export const getFfzEmoteUrl = (emoteId: string, size: 1 | 2 | 4 = 1) =>
+  `https://cdn.frankerfacez.com/emote/${emoteId}/${size}`;
+
+export interface ParseChatMessageOptions {
+  message: string;
+  emotes?: { [emoteId: string]: string[] };
+  bttvEmotes?: BttvEmote[];
+  ffzEmotes?: FfzChannelEmote[];
+}
+
+export const parseChatMessage = ({
+  message,
+  emotes,
+  bttvEmotes = [],
+  ffzEmotes = [],
+}: ParseChatMessageOptions): MessageToken[] => {
   const tokens: MessageToken[] = [];
   const messageArr = message.split(" ");
 
@@ -90,6 +102,16 @@ export const parseChatMessage = (
         text: word,
         isImage: true,
         imgSrc: getBttvEmoteUrl(bttvEmote.id),
+      });
+      return;
+    }
+
+    const ffzEmote = ffzEmotes.find((e) => e.code === word);
+    if (ffzEmote) {
+      tokens.push({
+        text: word,
+        isImage: true,
+        imgSrc: getFfzEmoteUrl(ffzEmote.id),
       });
       return;
     }
