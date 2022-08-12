@@ -2,6 +2,7 @@ import { CSSProperties } from "react";
 import { Badges, Userstate } from "tmi.js";
 import { BttvEmote } from "../api/bttv";
 import { FfzChannelEmote } from "../api/ffz";
+import { SevenTvChannelEmote } from "../api/sevenTv";
 import { BadgeSet } from "../api/twitch";
 
 export interface Message {
@@ -61,6 +62,7 @@ export interface ParseChatMessageOptions {
   emotes?: { [emoteId: string]: string[] };
   bttvEmotes?: BttvEmote[];
   ffzEmotes?: FfzChannelEmote[];
+  sevenTvEmotes?: SevenTvChannelEmote[];
 }
 
 export const parseChatMessage = ({
@@ -68,6 +70,7 @@ export const parseChatMessage = ({
   emotes,
   bttvEmotes = [],
   ffzEmotes = [],
+  sevenTvEmotes = [],
 }: ParseChatMessageOptions): MessageToken[] => {
   const tokens: MessageToken[] = [];
   const messageArr = message.split(" ");
@@ -101,7 +104,7 @@ export const parseChatMessage = ({
       tokens.push({
         text: word,
         isImage: true,
-        imgSrc: getBttvEmoteUrl(bttvEmote.id),
+        imgSrc: getBttvEmoteUrl(bttvEmote.id, 2),
       });
       return;
     }
@@ -111,7 +114,17 @@ export const parseChatMessage = ({
       tokens.push({
         text: word,
         isImage: true,
-        imgSrc: getFfzEmoteUrl(ffzEmote.id),
+        imgSrc: getFfzEmoteUrl(ffzEmote.id, 2),
+      });
+      return;
+    }
+
+    const sevenTvEmote = sevenTvEmotes.find((e) => e.code === word);
+    if (sevenTvEmote) {
+      tokens.push({
+        text: word,
+        isImage: true,
+        imgSrc: sevenTvEmote.urls[2],
       });
       return;
     }

@@ -36,6 +36,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getUser } from "../api/chitchat";
 import { getBttvEmotes } from "../api/bttv";
 import { getFfzEmotes } from "../api/ffz";
+import { getSevenTvEmotes } from "../api/sevenTv";
 
 const TabPage = () => {
   const tab = useTab();
@@ -70,6 +71,15 @@ const TabPage = () => {
     }
   );
 
+  const { data: sevenTvEmotes, isLoading: isLoadingSevenTvEmotes } = useQuery(
+    ["sevenTvEmotes", channel?.id],
+    () => getSevenTvEmotes(channel?.id ?? ""),
+    {
+      enabled: tab instanceof ChannelTab && !!channel,
+      refetchInterval: 1000 * 60 * 5, // 5 minutes
+    }
+  );
+
   useEffect(() => {
     if (tab) localStorage.setItem("activeTab", tab.id);
     else localStorage.removeItem("activeTab");
@@ -83,7 +93,8 @@ const TabPage = () => {
     isLoadingEmotes ||
     isLoadingChannel ||
     isLoadingBttvEmotes ||
-    isLoadingFfzEmotes;
+    isLoadingFfzEmotes ||
+    isLoadingSevenTvEmotes;
   if (tab instanceof ChannelTab)
     return isLoading ? (
       <LoadingTab size="lg" />
@@ -93,6 +104,7 @@ const TabPage = () => {
         channel={channel}
         bttvEmotes={bttvEmotes}
         ffzEmotes={ffzEmotes}
+        sevenTvEmotes={sevenTvEmotes}
       />
     );
   return <EmptyTab tab={tab} />;

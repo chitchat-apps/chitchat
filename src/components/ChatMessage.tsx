@@ -13,6 +13,7 @@ import useBadges from "../hooks/useBadges";
 import useEmotes from "../hooks/useEmotes";
 import { BttvChannelEmote } from "../api/bttv";
 import { FfzChannelEmote } from "../api/ffz";
+import { SevenTvChannelEmote } from "../api/sevenTv";
 
 interface ChatMessageProps {
   id: string;
@@ -24,6 +25,7 @@ interface ChatMessageProps {
   badges?: Badges;
   bttvEmotes: BttvChannelEmote[];
   ffzEmotes: FfzChannelEmote[];
+  sevenTvEmotes: SevenTvChannelEmote[];
 }
 
 const ChatMessage: FC<ChatMessageProps> = ({
@@ -36,6 +38,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
   badges,
   bttvEmotes: bttvChannelEmotes = [],
   ffzEmotes: ffzChannelEmotes = [],
+  sevenTvEmotes: sevenTvChannelEmotes = [],
 }) => {
   const { bttvEmotes } = useEmotes();
   const badgeContext = useBadges();
@@ -64,6 +67,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
       emotes,
       bttvEmotes: bttvEmotes.concat(bttvChannelEmotes),
       ffzEmotes: ffzChannelEmotes,
+      sevenTvEmotes: sevenTvChannelEmotes,
     }).map((token, i) => {
       const key = `${id}-${token.text}-${i}`;
 
@@ -85,25 +89,14 @@ const ChatMessage: FC<ChatMessageProps> = ({
         );
       if (token.isImage)
         return (
-          <Text
-            as="span"
-            display="inline-flex"
-            key={key}
-            h="1.5rem"
-            pos="relative"
-            justifyContent="center"
-            align="center"
-            mx="1px"
-          >
+          <Text key={key} as="span" display="inline" mx="1px" h="1.5rem">
             <Img
-              maxH="1.4rem"
-              h="100%"
+              display="inline"
+              h="2rem"
               w="auto"
-              display="inline-block"
-              pos="relative"
-              bottom={0}
               src={token.imgSrc}
               alt={` ${token.text}`}
+              verticalAlign="middle"
             />
           </Text>
         );
