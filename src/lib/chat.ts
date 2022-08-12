@@ -139,7 +139,10 @@ export const parseChatMessage = ({
 
     tokens.push({
       text: word,
-      style: styles.mention,
+      style:
+        word.startsWith("@") || word.startsWith("#")
+          ? styles.mention
+          : undefined,
     });
   });
 

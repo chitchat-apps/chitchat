@@ -104,7 +104,9 @@ const ChatMessage: FC<ChatMessageProps> = ({
       return (
         <Fragment key={key}>
           {i !== 0 && <span> </span>}
-          <Text as="span">{token.text}</Text>
+          <Text as="span" style={token.style}>
+            {token.text}
+          </Text>
         </Fragment>
       );
     });
