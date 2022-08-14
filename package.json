@@ -1,12 +1,14 @@
 {
   "name": "chitchat",
   "private": true,
-  "version": "0.2.7",
+  "version": "0.2.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "yarn generate-update",
     "build": "tsc && vite build",
     "build:mac": "yarn tauri build --target aarch64-apple-darwin && yarn tauri build --target x86_64-apple-darwin",
+    "generate-update": "node scripts/generate-update.cjs",
     "preview": "vite preview",
     "tauri": "tauri"
   },
