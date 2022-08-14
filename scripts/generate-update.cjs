@@ -22,7 +22,7 @@ const json = {
     },
     "windows-x86_64": {
       signature,
-      url: "https://github.com/chitchat-apps/chitchat/releases/latest/download/https://github.com/chitchat-apps/chitchat/releases/latest/download/ChitChat-Setup-Windows.msi.tar.gz",
+      url: "https://github.com/chitchat-apps/chitchat/releases/latest/download/https://github.com/chitchat-apps/chitchat/releases/latest/download/ChitChat-Setup-Windows.msi.zip",
     },
   },
 };
