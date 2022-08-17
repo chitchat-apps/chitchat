@@ -78,7 +78,20 @@
         "title": "ChitChat",
         "width": 500,
         "minHeight": 400,
-        "minWidth": 300
+        "minWidth": 300,
+        "label": "main"
+      },
+      {
+        "fullscreen": false,
+        "height": 600,
+        "resizable": true,
+        "title": "Login to Twitch",
+        "width": 500,
+        "minHeight": 400,
+        "minWidth": 300,
+        "visible": false,
+        "label": "twitch_login",
+        "url": "/blank"
       }
     ]
   }
