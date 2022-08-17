@@ -27,6 +27,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import BadgeProvider from "./context/badgeContext";
 import EmoteProvider from "./context/emotesContext";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import AuthProvider from "./context/authContext";
+import ChatProvider from "./context/chatContext";
+import StreamsProvider from "./context/streamsContext";
+import TmiClientProvider from "./context/tmiClientContext";
 
 const inputStyle: ComponentMultiStyleConfig = {
   parts: ["field"],
@@ -79,23 +83,34 @@ export const App: FC = () => {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <ReactQueryDevtools initialIsOpen={false} />
-          <TabProvider>
-            <EmoteProvider>
-              <BadgeProvider>
-                <TabInitializerCheck>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<InitPage />} />
-                      <Route path="/home" element={<HomePage />}>
-                        <Route path=":id" element={<TabPage />} />
-                      </Route>
-                      <Route path="/settings/*" element={<SettingsPage />} />
-                    </Routes>
-                  </Layout>
-                </TabInitializerCheck>
-              </BadgeProvider>
-            </EmoteProvider>
-          </TabProvider>
+          <AuthProvider>
+            <TabProvider>
+              <TmiClientProvider>
+                <EmoteProvider>
+                  <BadgeProvider>
+                    <ChatProvider>
+                      <StreamsProvider>
+                        <TabInitializerCheck>
+                          <Layout>
+                            <Routes>
+                              <Route path="/" element={<InitPage />} />
+                              <Route path="/home" element={<HomePage />}>
+                                <Route path=":id" element={<TabPage />} />
+                              </Route>
+                              <Route
+                                path="/settings/*"
+                                element={<SettingsPage />}
+                              />
+                            </Routes>
+                          </Layout>
+                        </TabInitializerCheck>
+                      </StreamsProvider>
+                    </ChatProvider>
+                  </BadgeProvider>
+                </EmoteProvider>
+              </TmiClientProvider>
+            </TabProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </BrowserRouter>
     </ChakraProvider>

@@ -1,4 +1,4 @@
-import { Box, Button, Flex, useColorMode } from "@chakra-ui/react";
+import { Button, Flex, useColorMode } from "@chakra-ui/react";
 import { FC } from "react";
 
 const GeneralPage: FC = () => {

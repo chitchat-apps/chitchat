@@ -39,10 +39,19 @@ export interface Stream {
   tagIds: string[];
 }
 
-export const getStreams = async (streams: string[]): Promise<Stream[]> => {
+export const getStreams = async (
+  streams: string[],
+  token?: string | null
+): Promise<Stream[]> => {
   const queryString =
     "?" + streams.map((stream) => `stream=${stream}`).join("&");
-  const res = await fetch(`${CHITCHAT_API_URL}/streams${queryString}`);
+  const res = await fetch(`${CHITCHAT_API_URL}/streams${queryString}`, {
+    headers: token
+      ? {
+          "X-Access-Token": token,
+        }
+      : undefined,
+  });
   const json = await res.json();
   if (res.ok) {
     const data = json as StreamsResponse[];

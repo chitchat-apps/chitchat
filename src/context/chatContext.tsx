@@ -1,39 +1,17 @@
 import { createContext, FC, ReactNode, useEffect, useState } from "react";
-import { ChannelTab, Tab } from "../lib/tab";
+import { ChannelTab } from "../lib/tab";
 import tmi from "tmi.js";
 import useTabs from "../hooks/useTabs";
 import { Chat, IChatContext, Message, Status } from "../lib/chat";
+import useTmiClient from "../hooks/useTmiClient";
 
 export const ChatContext = createContext<IChatContext | null>(null);
-
-export const getInitialChannels = () => {
-  const initialChannels: string[] = [];
-  const tabs = localStorage.getItem("tabs");
-  if (tabs) {
-    const tabList = JSON.parse(tabs) as Tab[];
-    tabList.forEach(
-      (tab) =>
-        "channel" in tab && initialChannels.push((tab as ChannelTab).channel)
-    );
-  }
-  return initialChannels;
-};
-
-export const client = new tmi.Client({
-  channels: getInitialChannels(),
-  logger: {
-    info: () => {
-      /* suppress tmi.js info logs */
-    },
-    warn: console.warn,
-    error: console.error,
-  },
-});
-client.connect();
 
 const ChatProvider: FC<{
   children: ReactNode;
 }> = ({ children }) => {
+  const { client } = useTmiClient();
+
   const tabs = useTabs();
 
   const [channels, setChannels] = useState<string[]>([]);

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createContext, FC, ReactNode, useEffect, useState } from "react";
 import { getStreams, Stream } from "../api/chitchat";
+import useAuth from "../hooks/useAuth";
 import useChats from "../hooks/useChats";
 
 export interface IChannelContext {
@@ -16,13 +17,14 @@ const StreamsProvider: FC<{
   children: ReactNode;
   initialStreams?: string[];
 }> = ({ children, initialStreams = [] }) => {
+  const auth = useAuth();
   const { channels } = useChats();
 
   const [streams, setStreams] = useState<string[]>(initialStreams);
 
   const streamsQuery = useQuery(
     ["streams", ...streams],
-    () => getStreams(streams),
+    () => getStreams(streams, auth.token),
     {
       refetchInterval: 1000 * 60 * 2, // 2 minutes
       enabled: streams.length > 0,

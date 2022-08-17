@@ -37,8 +37,10 @@ import { getUser } from "../api/chitchat";
 import { getBttvEmotes } from "../api/bttv";
 import { getFfzEmotes } from "../api/ffz";
 import { getSevenTvEmotes } from "../api/sevenTv";
+import useAuth from "../hooks/useAuth";
 
 const TabPage = () => {
+  const auth = useAuth();
   const tab = useTab();
   const { isLoading: isLoadingChats } = useChats();
   const { isLoading: isLoadingBadges } = useBadges();
@@ -46,7 +48,7 @@ const TabPage = () => {
 
   const { data: channel, isLoading: isLoadingChannel } = useQuery(
     ["channel", (tab as ChannelTab | undefined)?.channel],
-    () => getUser((tab as ChannelTab).channel),
+    () => getUser((tab as ChannelTab).channel, auth.token),
     {
       enabled: tab instanceof ChannelTab,
       refetchInterval: 1000 * 60 * 2, // 2 minutes

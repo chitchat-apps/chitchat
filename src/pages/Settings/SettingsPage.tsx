@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import AboutPage from "./AboutPage";
 import GeneralPage from "./GeneralPage";
+import UserPage from "./UserPage";
 
 const SettingsPage: FC = () => {
   const [search] = useSearchParams();
@@ -23,7 +24,7 @@ const SettingsPage: FC = () => {
         <Box w="100%" h="100%" pt={2}>
           <Routes>
             <Route path="" element={<GeneralPage />} />
-            <Route path="user" element={<Text>User</Text>} />
+            <Route path="user" element={<UserPage />} />
             <Route path="about" element={<AboutPage />} />
           </Routes>
         </Box>
@@ -56,7 +57,8 @@ export const SettingsSideBar: FC = () => {
           General
         </Button>
         <Button
-          isDisabled
+          as={Link}
+          to="/settings/user"
           isActive={location.pathname === "/settings/user"}
           variant="ghost"
           display="flex"

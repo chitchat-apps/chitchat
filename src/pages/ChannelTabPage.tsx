@@ -31,12 +31,13 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import useBadges from "../hooks/useBadges";
 import EmoteProvider from "../context/emotesContext";
 import useEmotes from "../hooks/useEmotes";
-import { client } from "../context/chatContext";
 import { BroadcasterType, User } from "../api/chitchat";
 import useStream from "../hooks/useStream";
 import { BttvChannelEmote } from "../api/bttv";
 import { FfzChannelEmote } from "../api/ffz";
 import { SevenTvChannelEmote } from "../api/sevenTv";
+import useAuth from "../hooks/useAuth";
+import useTmiClient from "../hooks/useTmiClient";
 
 export interface ChannelTabPageProps {
   tab: ChannelTab;
@@ -53,6 +54,9 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
   ffzEmotes = [],
   sevenTvEmotes = [],
 }) => {
+  const { client, status } = useTmiClient();
+
+  const auth = useAuth();
   const queryClient = useQueryClient();
   const { joinChat: addChat } = useChats();
   const chat = useChat(tab.channel);
@@ -69,6 +73,8 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
   const shouldAddTempMessages = useRef<boolean>(false);
 
   const [stopScroll, setStopScroll] = useState(false);
+
+  const [message, setMessage] = useState("");
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [tempMessages, setTempMessages] = useState<Message[]>([]);
@@ -215,6 +221,16 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
     };
   }, [tab]);
 
+  const handleSendMessage = async (e: any) => {
+    e.preventDefault();
+    if (message && message !== "") {
+      console.log(message);
+      const res = await client.say(tab.channel, message);
+      console.log(res);
+      setMessage("");
+    }
+  };
+
   return (
     //            TODO : Refactor this
     <Box flex="1" pos="relative" maxH="calc(100% - 2.5rem)">
@@ -223,16 +239,23 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
         justifyContent="space-between"
         bg={useColorModeValue("blackAlpha.50", "whiteAlpha.50")}
       >
-        {/* <Box /> */}
         <HStack spacing={1}>
-          <LiveIndicator
-            divWhenDisabled
-            isLive={stream !== undefined}
-            noTooltip
-          />
-          <Text fontWeight="bold" fontSize="xs">
-            {stream === undefined ? "Offline" : "Live"}
-          </Text>
+          {status === "CONNECTED" ? (
+            <>
+              <LiveIndicator
+                divWhenDisabled
+                isLive={stream !== undefined}
+                noTooltip
+              />
+              <Text fontWeight="bold" fontSize="xs">
+                {stream === undefined ? "Offline" : "Live"}
+              </Text>
+            </>
+          ) : (
+            <Text fontWeight="bold" fontSize="xs">
+              {status === "CONNECTING" ? "Connecting" : "Disconnected"}
+            </Text>
+          )}
         </HStack>
         <Tooltip
           placement="right"
@@ -333,12 +356,30 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
           <Text textAlign="center">Chat paused due to scroll</Text>
         </Button>
       )}
-      <Box px={2} w="full" pos="absolute" bottom={0}>
+      <Box
+        as="form"
+        px={2}
+        w="full"
+        pos="absolute"
+        bottom={0}
+        onSubmit={handleSendMessage}
+      >
         <InputGroup>
-          {/*TODO : Implement this */}
-          <Input variant="filled" placeholder="Send message" isDisabled />
+          <Input
+            variant="filled"
+            placeholder="Send message"
+            isDisabled={!auth.isAuthenticated || auth.isLoading}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
           <InputRightAddon>
-            <Button borderLeftRadius={0} isDisabled>
+            <Button
+              borderLeftRadius={0}
+              isDisabled={!auth.isAuthenticated}
+              isLoading={auth.isLoading}
+              type="submit"
+              onClick={handleSendMessage}
+            >
               Send
             </Button>
           </InputRightAddon>

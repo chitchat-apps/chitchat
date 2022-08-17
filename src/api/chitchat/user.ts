@@ -31,8 +31,17 @@ export interface User {
   createdAt: Date;
 }
 
-export const getUser = async (username: string): Promise<User> => {
-  const res = await fetch(`${CHITCHAT_API_URL}/users?username=${username}`);
+export const getUser = async (
+  username: string,
+  token?: string | null
+): Promise<User> => {
+  const res = await fetch(`${CHITCHAT_API_URL}/users?username=${username}`, {
+    headers: token
+      ? {
+          "X-Access-Token": token,
+        }
+      : undefined,
+  });
   const json = await res.json();
   if (res.ok) {
     const data = json as UserResponse[];
