@@ -1,7 +1,5 @@
 import { createContext, FC, ReactNode, useEffect, useState } from "react";
-import { ChannelTab } from "../lib/tab";
 import tmi from "tmi.js";
-import useTabs from "../hooks/useTabs";
 import { Chat, IChatContext, Message } from "../lib/chat";
 import useTmiClient from "../hooks/useTmiClient";
 import { getChannelsFromLs } from "./tmiClientContext";
