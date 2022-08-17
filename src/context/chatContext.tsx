@@ -2,8 +2,9 @@ import { createContext, FC, ReactNode, useEffect, useState } from "react";
 import { ChannelTab } from "../lib/tab";
 import tmi from "tmi.js";
 import useTabs from "../hooks/useTabs";
-import { Chat, IChatContext, Message, Status } from "../lib/chat";
+import { Chat, IChatContext, Message } from "../lib/chat";
 import useTmiClient from "../hooks/useTmiClient";
+import { getChannelsFromLs } from "./tmiClientContext";
 
 export const ChatContext = createContext<IChatContext | null>(null);
 
@@ -12,45 +13,30 @@ const ChatProvider: FC<{
 }> = ({ children }) => {
   const { client } = useTmiClient();
 
-  const tabs = useTabs();
-
   const [channels, setChannels] = useState<string[]>([]);
 
   const [chats, setChats] = useState<{ [key: string]: Chat }>(() => {
     const chats: { [key: string]: Chat } = {};
-    tabs?.tabs.forEach((tab) => {
-      if ("channel" in tab) {
-        const messages = [];
-        const lsMessages = localStorage.getItem(
-          `${(tab as ChannelTab).channel}-messages`
-        );
-        if (lsMessages) {
-          const m = JSON.parse(lsMessages) as Message[];
-          messages.push(...m);
-        }
-
-        chats[(tab as ChannelTab).channel] = {
-          messages,
-          status: "connected",
-        };
+    getChannelsFromLs().forEach((channel) => {
+      const messages = [];
+      const lsMessages = localStorage.getItem(`${channel}-messages`);
+      if (lsMessages) {
+        const m = JSON.parse(lsMessages) as Message[];
+        messages.push(...m);
       }
+
+      chats[channel] = {
+        messages,
+        status: "connected",
+      };
     });
     setChannels(Object.keys(chats));
     return chats;
   });
-  const [status, setStatus] = useState<Status>("disconnected");
 
   useEffect(() => {
     let ignore = false;
-    const onConnect = () => {
-      setStatus("connected");
-    };
-    const onDisconnected = () => {
-      setStatus("disconnected");
-    };
-    const onConnecting = () => {
-      setStatus("connecting");
-    };
+
     const onMessage = (
       channel: string,
       userstate: tmi.ChatUserstate,
@@ -80,19 +66,13 @@ const ChatProvider: FC<{
       }
     };
 
-    client.on("connected", onConnect);
-    client.on("disconnected", onDisconnected);
-    client.on("connecting", onConnecting);
     client.on("message", onMessage);
 
     return () => {
       ignore = true;
-      client.removeListener("connected", onConnect);
-      client.removeListener("disconnected", onDisconnected);
-      client.removeListener("connecting", onConnecting);
       client.removeListener("message", onMessage);
     };
-  }, [chats]);
+  }, [chats, client]);
 
   const joinChat = async (channel: string) => {
     if (Object.keys(chats).includes(channel)) {
@@ -132,7 +112,6 @@ const ChatProvider: FC<{
     <ChatContext.Provider
       value={{
         chats,
-        status,
         channels,
         isLoading: false,
         joinChat,

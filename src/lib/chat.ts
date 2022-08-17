@@ -22,7 +22,6 @@ export interface Chat {
 export interface IChatContext {
   chats: { [key: string]: Chat };
   channels: string[];
-  status: Status;
   isLoading: boolean;
   joinChat: (channel: string) => Promise<void>;
   leaveChat: (channel: string) => Promise<void>;

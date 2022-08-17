@@ -224,10 +224,13 @@ const ChannelTabPage: FC<ChannelTabPageProps> = ({
   const handleSendMessage = async (e: any) => {
     e.preventDefault();
     if (message && message !== "") {
-      console.log(message);
-      const res = await client.say(tab.channel, message);
-      console.log(res);
-      setMessage("");
+      try {
+        await client.say(tab.channel, message);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setMessage("");
+      }
     }
   };
 
