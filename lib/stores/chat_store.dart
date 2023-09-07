@@ -1,0 +1,154 @@
+import "dart:async";
+
+import "package:chitchat/api/bttv_api.dart";
+import "package:chitchat/api/ffz_api.dart";
+import "package:chitchat/api/seven_tv_api.dart";
+import "package:chitchat/api/twitch_api.dart";
+import "package:chitchat/models/badges/chat_badge.dart";
+import "package:chitchat/models/emotes/emote.dart";
+import "package:chitchat/models/twitch_message.dart";
+import "package:chitchat/stores/auth_store.dart";
+import "package:flutter/material.dart";
+import "package:mobx/mobx.dart";
+
+part "chat_store.g.dart";
+
+class ChatStore = ChatBaseStore with _$ChatStore;
+
+abstract class ChatBaseStore with Store {
+  final AuthStore authStore;
+  final TwitchApi twitchApi;
+  final FFZApi ffzApi;
+  final BTTVApi bttvApi;
+  final SevenTvApi sevenTvApi;
+  final String channel;
+  final String? channelId;
+
+  static const _messageLimit = 5000;
+
+  final _messagesToRemove = (_messageLimit * 0.2).toInt();
+
+  @readonly
+  // ignore: prefer_final_fields
+  var _messages = ObservableList<TwitchMessage>();
+
+  @readonly
+  // ignore: prefer_final_fields
+  Map<String, Emote> _emotes = {};
+
+  @readonly
+  // ignore: prefer_final_fields
+  Map<String, Emote> _globalEmotes;
+
+  @readonly
+  // ignore: prefer_final_fields
+  Map<String, ChatBadge> _badges = {};
+
+  @readonly
+  // ignore: prefer_final_fields
+  Map<String, ChatBadge> _globalBadges;
+
+  ChatBaseStore({
+    required this.authStore,
+    required this.channel,
+    required this.twitchApi,
+    required this.ffzApi,
+    required this.bttvApi,
+    required this.sevenTvApi,
+    required Map<String, Emote> globalEmotes,
+    required Map<String, ChatBadge> globalBadges,
+    this.channelId,
+  })  : _globalEmotes = globalEmotes,
+        _globalBadges = globalBadges;
+
+  @action
+  void addMessage(TwitchMessage event) {
+    _messages.add(event);
+    if (_messages.length >= _messageLimit) {
+      _messages.removeRange(0, _messagesToRemove);
+    }
+  }
+
+  @action
+  Future<void> initialize() async {
+    _messages.add(TwitchMessage.notice(
+      message: "Connecting to $channel...",
+      channel: channel,
+    ));
+
+    if (channelId != null) {
+      await Future.wait([
+        fetchEmotes(
+          channelId: channelId!,
+          headers: authStore.twitchHeaders,
+        ),
+        fetchBadges(
+          channelId: channelId!,
+          headers: authStore.twitchHeaders,
+        ),
+      ]);
+    }
+  }
+
+  @action
+  Future<void> fetchEmotes({
+    required String channelId,
+    required Map<String, String> headers,
+  }) async {
+    onError(err) {
+      debugPrint("Error fetching emotes: $err");
+      return <Emote>[];
+    }
+
+    final result = await Future.wait([
+      twitchApi
+          .getChannelEmotes(
+            id: channelId,
+            headers: headers,
+          )
+          .catchError(onError),
+      ffzApi.getChannelEmotes(id: channelId).catchError(onError),
+      bttvApi.getChannelEmotes(id: channelId).catchError(onError),
+      sevenTvApi.getChannelEmotes(id: channelId).catchError(onError),
+    ]);
+
+    _emotes = {
+      for (final emote in result.expand((emotes) => emotes)) emote.name: emote
+    };
+  }
+
+  @action
+  Future<void> fetchBadges({
+    required String channelId,
+    required Map<String, String> headers,
+  }) async {
+    onError(err) {
+      debugPrint("Error fetching badges: $err");
+      return <String, ChatBadge>{};
+    }
+
+    final result = await Future.wait([
+      twitchApi
+          .getChannelBadges(
+            id: channelId,
+            headers: headers,
+          )
+          .catchError(onError),
+      // ffzApi.getGlobalEmotes().catchError(onError),
+      // bttvApi.getGlobalEmotes().catchError(onError),
+      // sevenTvApi.getGlobalEmotes().catchError(onError),
+    ]);
+
+    _badges = {
+      for (final badge in result.expand((badges) => badges.entries))
+        badge.key: badge.value
+    };
+  }
+
+  void dispose() {
+    _messages.add(TwitchMessage.notice(
+      message: "Disconnected from $channel",
+      channel: channel,
+    ));
+  }
+}
