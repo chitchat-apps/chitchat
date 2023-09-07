@@ -135,14 +135,17 @@ class _ChannelScreenState extends State<ChannelScreen> {
                     }
                   },
                 ),
-                const PopupMenuItem(
-                  child: Row(
+                PopupMenuItem(
+                  child: const Row(
                     children: [
-                      Icon(Icons.settings),
+                      Icon(Icons.refresh_rounded),
                       SizedBox(width: 8),
-                      Text("Settings"),
+                      Text("Reconnect"),
                     ],
                   ),
+                  onTap: () {
+                    channelStore.reconnect();
+                  },
                 ),
                 PopupMenuItem(
                   child: const Row(
@@ -156,25 +159,18 @@ class _ChannelScreenState extends State<ChannelScreen> {
                     widget.onClose?.call();
                   },
                 ),
-                if (!const bool.fromEnvironment("dart.vm.product"))
+                if (!const bool.fromEnvironment("dart.vm.product") &&
+                    channelStore.connected)
                   PopupMenuItem(
-                    child: Row(
+                    child: const Row(
                       children: [
-                        Icon(
-                          channelStore.connected
-                              ? Icons.wifi_off_rounded
-                              : Icons.wifi_rounded,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(channelStore.connected ? "Disconnect" : "Connect"),
+                        Icon(Icons.wifi_off_rounded),
+                        SizedBox(width: 8),
+                        Text("Disconnect"),
                       ],
                     ),
                     onTap: () {
-                      if (channelStore.connected) {
-                        channelStore.disconnect();
-                      } else {
-                        channelStore.connect();
-                      }
+                      channelStore.disconnect();
                     },
                   ),
               ],

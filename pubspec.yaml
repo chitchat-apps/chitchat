@@ -45,6 +45,7 @@ dependencies:
   url_launcher: ^6.1.12
   window_to_front: ^0.0.3
   web_socket_channel: ^2.4.0
+  connectivity_plus: ^4.0.2
   twitch_tmi:
     git:
       url: https://github.com/chitchat-apps/twitch_tmi.git

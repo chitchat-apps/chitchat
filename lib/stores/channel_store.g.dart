@@ -121,9 +121,9 @@ mixin _$ChannelStore on ChannelBaseStore, Store {
       AsyncAction('ChannelBaseStore.initialize', context: context);
 
   @override
-  Future<void> initialize({List<String>? channels}) {
-    return _$initializeAsyncAction
-        .run(() => super.initialize(channels: channels));
+  Future<void> initialize({List<String>? channels, bool isReconnect = false}) {
+    return _$initializeAsyncAction.run(
+        () => super.initialize(channels: channels, isReconnect: isReconnect));
   }
 
   late final _$joinAsyncAction =
@@ -178,6 +178,17 @@ mixin _$ChannelStore on ChannelBaseStore, Store {
         name: 'ChannelBaseStore.disconnect');
     try {
       return super.disconnect();
+    } finally {
+      _$ChannelBaseStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void reconnect() {
+    final _$actionInfo = _$ChannelBaseStoreActionController.startAction(
+        name: 'ChannelBaseStore.reconnect');
+    try {
+      return super.reconnect();
     } finally {
       _$ChannelBaseStoreActionController.endAction(_$actionInfo);
     }
