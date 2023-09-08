@@ -9,6 +9,32 @@ part of 'chat_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$ChatStore on ChatBaseStore, Store {
+  Computed<List<TwitchMessage>>? _$renderMessagesComputed;
+
+  @override
+  List<TwitchMessage> get renderMessages => (_$renderMessagesComputed ??=
+          Computed<List<TwitchMessage>>(() => super.renderMessages,
+              name: 'ChatBaseStore.renderMessages'))
+      .value;
+
+  late final _$_pauseScrollAtom =
+      Atom(name: 'ChatBaseStore._pauseScroll', context: context);
+
+  bool get pauseScroll {
+    _$_pauseScrollAtom.reportRead();
+    return super._pauseScroll;
+  }
+
+  @override
+  bool get _pauseScroll => pauseScroll;
+
+  @override
+  set _pauseScroll(bool value) {
+    _$_pauseScrollAtom.reportWrite(value, super._pauseScroll, () {
+      super._pauseScroll = value;
+    });
+  }
+
   late final _$_messagesAtom =
       Atom(name: 'ChatBaseStore._messages', context: context);
 
@@ -131,11 +157,55 @@ mixin _$ChatStore on ChatBaseStore, Store {
       ActionController(name: 'ChatBaseStore', context: context);
 
   @override
-  void addMessage(TwitchMessage event) {
+  void addMessage(TwitchMessage message) {
     final _$actionInfo = _$ChatBaseStoreActionController.startAction(
         name: 'ChatBaseStore.addMessage');
     try {
-      return super.addMessage(event);
+      return super.addMessage(message);
+    } finally {
+      _$ChatBaseStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void updateMessages() {
+    final _$actionInfo = _$ChatBaseStoreActionController.startAction(
+        name: 'ChatBaseStore.updateMessages');
+    try {
+      return super.updateMessages();
+    } finally {
+      _$ChatBaseStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void suspendScroll() {
+    final _$actionInfo = _$ChatBaseStoreActionController.startAction(
+        name: 'ChatBaseStore.suspendScroll');
+    try {
+      return super.suspendScroll();
+    } finally {
+      _$ChatBaseStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void resumeScroll() {
+    final _$actionInfo = _$ChatBaseStoreActionController.startAction(
+        name: 'ChatBaseStore.resumeScroll');
+    try {
+      return super.resumeScroll();
+    } finally {
+      _$ChatBaseStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void dispose() {
+    final _$actionInfo = _$ChatBaseStoreActionController.startAction(
+        name: 'ChatBaseStore.dispose');
+    try {
+      return super.dispose();
     } finally {
       _$ChatBaseStoreActionController.endAction(_$actionInfo);
     }
@@ -144,7 +214,7 @@ mixin _$ChatStore on ChatBaseStore, Store {
   @override
   String toString() {
     return '''
-
+renderMessages: ${renderMessages}
     ''';
   }
 }

@@ -36,7 +36,7 @@ class _ChatInputState extends State<ChatInput> {
       return Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,

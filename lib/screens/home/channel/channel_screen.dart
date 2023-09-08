@@ -19,11 +19,7 @@ class ChannelScreen extends StatefulWidget {
 }
 
 class _ChannelScreenState extends State<ChannelScreen> {
-  @override
-  void dispose() {
-    debugPrint("Closing channel ${widget.channelName}");
-    super.dispose();
-  }
+  final _focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -33,196 +29,263 @@ class _ChannelScreenState extends State<ChannelScreen> {
       final settingsStore = context.read<SettingsStore>();
       final theme = Theme.of(context);
 
-      return Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 72,
-          title: channel == null
-              ? Text(
-                  widget.channelName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.network(
-                            channel.profileImageUrl,
-                            height: 28,
-                            width: 28,
-                            filterQuality: FilterQuality.medium,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              return loadingProgress == null
-                                  ? child
-                                  : ColoredBox(
-                                      color: theme.primaryColor,
-                                      child: SizedBox(
-                                        height: 28,
-                                        width: 28,
-                                        child: Text(
-                                          widget.channelName[0].toLowerCase(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: theme.colorScheme.onPrimary,
-                                            fontWeight: FontWeight.w600,
+      return RawKeyboardListener(
+        autofocus: true,
+        focusNode: _focusNode,
+        onKey: (event) {
+          final chatStore =
+              channelStore.chats[widget.channelName.toLowerCase()];
+          if (chatStore != null) {
+            if (event.isAltPressed && chatStore.pauseScroll == false) {
+              chatStore.suspendScroll();
+            } else if (!event.isAltPressed && chatStore.pauseScroll == true) {
+              chatStore.resumeScroll();
+            }
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            toolbarHeight: 72,
+            title: channel == null
+                ? Text(
+                    widget.channelName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: Image.network(
+                              channel.profileImageUrl,
+                              height: 28,
+                              width: 28,
+                              filterQuality: FilterQuality.medium,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                return loadingProgress == null
+                                    ? child
+                                    : ColoredBox(
+                                        color: theme.primaryColor,
+                                        child: SizedBox(
+                                          height: 28,
+                                          width: 28,
+                                          child: Text(
+                                            widget.channelName[0].toLowerCase(),
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color:
+                                                  theme.colorScheme.onPrimary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                            },
+                                      );
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          channel.displayName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 16),
-                          maxLines: 1,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      channel.description,
-                      maxLines: 1,
-                      style: TextStyle(
-                        color: theme.hintColor,
-                        fontSize: 12,
+                          const SizedBox(width: 8),
+                          Text(
+                            channel.displayName,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 16),
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-          actions: [
-            // only show tooltip if running in debug mode
-            if (!const bool.fromEnvironment("dart.vm.product"))
-              Tooltip(
-                message: channelStore.connected ? "Connected" : "Disconnected",
-                child: Icon(
-                  channelStore.connected
-                      ? Icons.wifi_rounded
-                      : Icons.wifi_off_rounded,
-                  color: channelStore.connected ? Colors.green : Colors.red,
-                ),
-              ),
-            const SizedBox(width: 8),
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: const Row(
-                    children: [
-                      Icon(Icons.open_in_new_rounded),
-                      SizedBox(width: 8),
-                      Text("Open stream"),
+                      const SizedBox(height: 4),
+                      Text(
+                        channel.description,
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: theme.hintColor,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
-                  onTap: () async {
-                    final uri = Uri(
-                      scheme: "https",
-                      host: "twitch.tv",
-                      path: widget.channelName,
-                    );
-
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    }
-                  },
-                ),
-                PopupMenuItem(
-                  child: const Row(
-                    children: [
-                      Icon(Icons.refresh_rounded),
-                      SizedBox(width: 8),
-                      Text("Reconnect"),
-                    ],
+            actions: [
+              // only show tooltip if running in debug mode
+              if (!const bool.fromEnvironment("dart.vm.product"))
+                Tooltip(
+                  message:
+                      channelStore.connected ? "Connected" : "Disconnected",
+                  child: Icon(
+                    channelStore.connected
+                        ? Icons.wifi_rounded
+                        : Icons.wifi_off_rounded,
+                    color: channelStore.connected ? Colors.green : Colors.red,
                   ),
-                  onTap: () {
-                    channelStore.reconnect();
-                  },
                 ),
-                PopupMenuItem(
-                  child: const Row(
-                    children: [
-                      Icon(Icons.remove_circle),
-                      SizedBox(width: 8),
-                      Text("Close tab"),
-                    ],
-                  ),
-                  onTap: () {
-                    widget.onClose?.call();
-                  },
-                ),
-                if (!const bool.fromEnvironment("dart.vm.product") &&
-                    channelStore.connected)
+              const SizedBox(width: 8),
+              PopupMenuButton(
+                icon: const Icon(Icons.more_vert),
+                itemBuilder: (context) => [
                   PopupMenuItem(
                     child: const Row(
                       children: [
-                        Icon(Icons.wifi_off_rounded),
+                        Icon(Icons.open_in_new_rounded),
                         SizedBox(width: 8),
-                        Text("Disconnect"),
+                        Text("Open stream"),
+                      ],
+                    ),
+                    onTap: () async {
+                      final uri = Uri(
+                        scheme: "https",
+                        host: "twitch.tv",
+                        path: widget.channelName,
+                      );
+
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      }
+                    },
+                  ),
+                  PopupMenuItem(
+                    child: const Row(
+                      children: [
+                        Icon(Icons.refresh_rounded),
+                        SizedBox(width: 8),
+                        Text("Reconnect"),
                       ],
                     ),
                     onTap: () {
-                      channelStore.disconnect();
+                      channelStore.reconnect();
                     },
                   ),
-              ],
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: Observer(
-          builder: (context) {
-            final chatStore =
-                channelStore.chats[widget.channelName.toLowerCase()];
-
-            if (chatStore == null) {
-              return const SizedBox();
-            }
-
-            return SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: ListView.builder(
-                      reverse: true,
-                      itemCount: chatStore.messages.length,
-                      itemBuilder: (context, index) {
-                        if (settingsStore.messageDividers) {
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ChatMessage(
-                                message:
-                                    chatStore.messages.reversed.toList()[index],
-                              ),
-                              const Divider(height: 1),
-                            ],
-                          );
-                        }
-
-                        return ChatMessage(
-                          message: chatStore.messages.reversed.toList()[index],
-                        );
+                  PopupMenuItem(
+                    child: const Row(
+                      children: [
+                        Icon(Icons.remove_circle),
+                        SizedBox(width: 8),
+                        Text("Close tab"),
+                      ],
+                    ),
+                    onTap: () {
+                      widget.onClose?.call();
+                    },
+                  ),
+                  if (!const bool.fromEnvironment("dart.vm.product") &&
+                      channelStore.connected)
+                    PopupMenuItem(
+                      child: const Row(
+                        children: [
+                          Icon(Icons.wifi_off_rounded),
+                          SizedBox(width: 8),
+                          Text("Disconnect"),
+                        ],
+                      ),
+                      onTap: () {
+                        channelStore.disconnect();
                       },
                     ),
-                  ),
-                  ChatInput(channelStore: channelStore, chatStore: chatStore),
                 ],
               ),
-            );
-          },
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: Observer(
+            builder: (context) {
+              final chatStore =
+                  channelStore.chats[widget.channelName.toLowerCase()];
+
+              if (chatStore == null) {
+                return const SizedBox();
+              }
+
+              return SafeArea(
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: ListView.builder(
+                            reverse: true,
+                            itemCount: chatStore.renderMessages.length,
+                            controller: chatStore.scrollController,
+                            itemBuilder: (context, index) {
+                              if (settingsStore.messageDividers) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ChatMessage(
+                                      message: chatStore.renderMessages.reversed
+                                          .toList()[index],
+                                    ),
+                                    const Divider(height: 1),
+                                  ],
+                                );
+                              }
+
+                              return ChatMessage(
+                                message: chatStore.renderMessages.reversed
+                                    .toList()[index],
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 4.0),
+                        ChatInput(
+                          channelStore: channelStore,
+                          chatStore: chatStore,
+                        ),
+                      ],
+                    ),
+                    if (chatStore.pauseScroll)
+                      Positioned(
+                        left: 0,
+                        bottom: 60,
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 4.0,
+                            horizontal: 8.0,
+                          ),
+                          child: Center(
+                            child: Opacity(
+                              opacity: 0.75,
+                              child: FilledButton.tonal(
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  padding: MaterialStateProperty.all(
+                                    const EdgeInsets.all(0),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  chatStore.resumeScroll();
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text(
+                                    "Chat paused - press to resume",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       );
     });
