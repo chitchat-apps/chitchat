@@ -396,7 +396,10 @@ class PrivateMessage extends StatelessWidget {
     if (message.clear != null) {
       final duration = message.clear!.duration;
       final ban = message.clear!.ban;
-      const textStyle = TextStyle(fontWeight: FontWeight.w600);
+      final textStyle = TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: settingsStore.fontSize,
+      );
       renderMessage = Opacity(
         opacity: 0.5,
         child: Column(
@@ -422,9 +425,9 @@ class PrivateMessage extends StatelessWidget {
                   style: textStyle,
                 )
               else if (ban)
-                const Text("(Banned)", style: textStyle)
+                Text("(Banned)", style: textStyle)
               else if (settingsStore.showDeleted)
-                const Text("(Deleted)", style: textStyle),
+                Text("(Deleted)", style: textStyle),
           ],
         ),
       );
