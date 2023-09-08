@@ -268,6 +268,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                 ),
                                 onPressed: () {
                                   chatStore.resumeScroll();
+                                  _focusNode.requestFocus();
                                 },
                                 child: const Padding(
                                   padding: EdgeInsets.all(16.0),
