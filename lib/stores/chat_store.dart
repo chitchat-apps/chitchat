@@ -28,6 +28,15 @@ abstract class ChatBaseStore with Store {
 
   final _messagesToRemove = (_messageLimit * 0.2).toInt();
 
+  final scrollController = ScrollController();
+
+  late final Timer _messageBufferTimer;
+
+  final _messageBuffer = <TwitchMessage>[];
+
+  @readonly
+  var _pauseScroll = false;
+
   @readonly
   // ignore: prefer_final_fields
   var _messages = ObservableList<TwitchMessage>();
@@ -61,9 +70,34 @@ abstract class ChatBaseStore with Store {
   })  : _globalEmotes = globalEmotes,
         _globalBadges = globalBadges;
 
+  @computed
+  List<TwitchMessage> get renderMessages {
+    if (_pauseScroll || _messages.length < _messageLimit) {
+      return _messages;
+    }
+
+    return _messages.sublist(
+      _messages.length - _messageLimit,
+      _messages.length,
+    );
+  }
+
   @action
-  void addMessage(TwitchMessage event) {
-    _messages.add(event);
+  void addMessage(TwitchMessage message) {
+    _messageBuffer.add(message);
+    if (_messageBuffer.length >= _messageLimit) {
+      _messageBuffer.removeRange(0, _messagesToRemove);
+    }
+  }
+
+  @action
+  void updateMessages() {
+    if (_pauseScroll || _messageBuffer.isEmpty) {
+      return;
+    }
+
+    _messages.addAll(_messageBuffer);
+    _messageBuffer.clear();
     if (_messages.length >= _messageLimit) {
       _messages.removeRange(0, _messagesToRemove);
     }
@@ -75,6 +109,17 @@ abstract class ChatBaseStore with Store {
       message: "Connecting to $channel...",
       channel: channel,
     ));
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels > 0) {
+        _pauseScroll = true;
+      }
+    });
+
+    _messageBufferTimer = Timer.periodic(
+      const Duration(milliseconds: 250),
+      (_) => updateMessages(),
+    );
 
     if (channelId != null) {
       await Future.wait([
@@ -145,10 +190,25 @@ abstract class ChatBaseStore with Store {
     };
   }
 
+  @action
+  void suspendScroll() {
+    _pauseScroll = true;
+  }
+
+  @action
+  void resumeScroll() {
+    _pauseScroll = false;
+    scrollController.jumpTo(0);
+  }
+
+  @action
   void dispose() {
-    _messages.add(TwitchMessage.notice(
-      message: "Disconnected from $channel",
-      channel: channel,
-    ));
+    _messageBufferTimer.cancel();
+    scrollController.dispose();
+
+    // _messages.add(TwitchMessage.notice(
+    //   message: "Disconnected from $channel",
+    //   channel: channel,
+    // ));
   }
 }
