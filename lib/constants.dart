@@ -1,4 +1,4 @@
-final messageBlockNoticeIds = [
+const messageBlockNoticeIds = [
   "msg_banned",
   "msg_bad_characters",
   "msg_channel_blocked",
@@ -19,3 +19,5 @@ final messageBlockNoticeIds = [
   "msg_timedout",
   "msg_verified_email",
 ];
+
+const refetchDuration = Duration(minutes: 5);

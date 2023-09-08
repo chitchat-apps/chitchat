@@ -27,6 +27,24 @@ mixin _$ChannelStore on ChannelBaseStore, Store {
     });
   }
 
+  late final _$_connectingAtom =
+      Atom(name: 'ChannelBaseStore._connecting', context: context);
+
+  bool get connecting {
+    _$_connectingAtom.reportRead();
+    return super._connecting;
+  }
+
+  @override
+  bool get _connecting => connecting;
+
+  @override
+  set _connecting(bool value) {
+    _$_connectingAtom.reportWrite(value, super._connecting, () {
+      super._connecting = value;
+    });
+  }
+
   late final _$_chatsAtom =
       Atom(name: 'ChannelBaseStore._chats', context: context);
 

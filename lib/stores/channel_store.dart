@@ -12,7 +12,6 @@ import "package:chitchat/models/twitch_message.dart";
 import "package:chitchat/models/twitch_user.dart";
 import "package:chitchat/stores/auth_store.dart";
 import "package:chitchat/stores/chat_store.dart";
-import "package:connectivity_plus/connectivity_plus.dart";
 import "package:flutter/material.dart";
 import "package:mobx/mobx.dart";
 import "package:twitch_tmi/twitch_tmi.dart";
@@ -32,12 +31,13 @@ abstract class ChannelBaseStore with Store {
 
   StreamSubscription<TmiClientEvent>? _subscription;
 
-  StreamSubscription? _connectivitySubscription;
-
   Timer? _refetchTimer;
 
   @readonly
   var _connected = false;
+
+  @readonly
+  var _connecting = false;
 
   @readonly
   // ignore: prefer_final_fields
@@ -74,6 +74,8 @@ abstract class ChannelBaseStore with Store {
       return;
     }
 
+    _connecting = true;
+
     dispose();
     _client = TmiClient(
       username: auth.userStore.user?.login,
@@ -81,7 +83,7 @@ abstract class ChannelBaseStore with Store {
       channels: channels ?? [],
       autoPong: true,
       logs: true,
-      logLevel: Level.debug,
+      logLevel: Level.info,
     );
 
     await Future.wait([fetchGlobalBadges(), fetchGlobalEmotes()]);
@@ -129,21 +131,7 @@ abstract class ChannelBaseStore with Store {
 
     _subscription = _client!.listen(_handleEvent);
 
-    _connectivitySubscription =
-        Connectivity().onConnectivityChanged.listen((result) {
-      if (result == ConnectivityResult.none && _connected) {
-        _connected = false;
-        for (var channel in _client!.channels) {
-          channel = channel.toLowerCase();
-          _chats[channel]?.addMessage(TwitchMessage.notice(
-            message: "Disconnected from $channel",
-            channel: channel,
-          ));
-        }
-      }
-    });
-
-    _refetchTimer = Timer.periodic(const Duration(minutes: 1), (timer) async {
+    _refetchTimer = Timer.periodic(refetchDuration, (timer) async {
       debugPrint("Refetching emotes");
       onError(err) {
         // TODO: Handle error
@@ -187,8 +175,13 @@ abstract class ChannelBaseStore with Store {
 
   @action
   void disconnect() {
+    if (!_connected) {
+      return;
+    }
+
     _client?.disconnect();
     _connected = false;
+    _connecting = false;
     for (var channel in _client!.channels) {
       channel = channel.toLowerCase();
       _chats[channel]?.addMessage(TwitchMessage.notice(
@@ -230,6 +223,10 @@ abstract class ChannelBaseStore with Store {
   @action
   Future<void> join(String channel) async {
     channel = channel.toLowerCase();
+    final existingChat = _chats[channel];
+    if (existingChat != null) {
+      return;
+    }
 
     final channelObj = await twitchApi.getUser(
         userLogin: channel, headers: auth.twitchHeaders);
@@ -360,6 +357,7 @@ abstract class ChannelBaseStore with Store {
         break;
       case TmiClientEventType.connected:
         _connected = true;
+        _connecting = false;
         break;
       case TmiClientEventType.disconnected:
         disconnect();
@@ -421,8 +419,6 @@ abstract class ChannelBaseStore with Store {
   }
 
   void dispose() {
-    _connectivitySubscription?.cancel();
-    _connectivitySubscription = null;
     _refetchTimer?.cancel();
     _refetchTimer = null;
     _subscription?.cancel();
