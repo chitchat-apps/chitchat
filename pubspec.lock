@@ -802,7 +802,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "67b1fc567d2d1969d17ef0ce178054efbadd574d"
+      resolved-ref: "32fb078e1555fdc24e859fc8618ed00cd0265709"
       url: "https://github.com/chitchat-apps/twitch_tmi.git"
     source: git
     version: "0.0.1"
