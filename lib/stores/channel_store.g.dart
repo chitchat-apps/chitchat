@@ -27,6 +27,24 @@ mixin _$ChannelStore on ChannelBaseStore, Store {
     });
   }
 
+  late final _$_connectingAtom =
+      Atom(name: 'ChannelBaseStore._connecting', context: context);
+
+  bool get connecting {
+    _$_connectingAtom.reportRead();
+    return super._connecting;
+  }
+
+  @override
+  bool get _connecting => connecting;
+
+  @override
+  set _connecting(bool value) {
+    _$_connectingAtom.reportWrite(value, super._connecting, () {
+      super._connecting = value;
+    });
+  }
+
   late final _$_chatsAtom =
       Atom(name: 'ChannelBaseStore._chats', context: context);
 
@@ -121,9 +139,9 @@ mixin _$ChannelStore on ChannelBaseStore, Store {
       AsyncAction('ChannelBaseStore.initialize', context: context);
 
   @override
-  Future<void> initialize({List<String>? channels}) {
-    return _$initializeAsyncAction
-        .run(() => super.initialize(channels: channels));
+  Future<void> initialize({List<String>? channels, bool isReconnect = false}) {
+    return _$initializeAsyncAction.run(
+        () => super.initialize(channels: channels, isReconnect: isReconnect));
   }
 
   late final _$joinAsyncAction =
@@ -178,6 +196,17 @@ mixin _$ChannelStore on ChannelBaseStore, Store {
         name: 'ChannelBaseStore.disconnect');
     try {
       return super.disconnect();
+    } finally {
+      _$ChannelBaseStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void reconnect() {
+    final _$actionInfo = _$ChannelBaseStoreActionController.startAction(
+        name: 'ChannelBaseStore.reconnect');
+    try {
+      return super.reconnect();
     } finally {
       _$ChannelBaseStoreActionController.endAction(_$actionInfo);
     }

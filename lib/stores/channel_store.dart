@@ -37,6 +37,9 @@ abstract class ChannelBaseStore with Store {
   var _connected = false;
 
   @readonly
+  var _connecting = false;
+
+  @readonly
   // ignore: prefer_final_fields
   var _chats = ObservableMap<String, ChatStore>();
 
@@ -63,19 +66,24 @@ abstract class ChannelBaseStore with Store {
   });
 
   @action
-  Future<void> initialize({List<String>? channels}) async {
+  Future<void> initialize({
+    List<String>? channels,
+    bool isReconnect = false,
+  }) async {
     if (auth.userToken == null || !auth.isAuthenticated) {
       return;
     }
 
-    _client?.dispose();
+    _connecting = true;
+
+    dispose();
     _client = TmiClient(
       username: auth.userStore.user?.login,
       token: auth.userToken,
       channels: channels ?? [],
       autoPong: true,
       logs: true,
-      logLevel: Level.debug,
+      logLevel: Level.info,
     );
 
     await Future.wait([fetchGlobalBadges(), fetchGlobalEmotes()]);
@@ -91,20 +99,30 @@ abstract class ChannelBaseStore with Store {
         .asObservable();
 
     final chatFutureList = <Future<void>>[];
-    for (var channel in _client!.channels) {
-      channel = channel.toLowerCase();
-      _chats[channel] = ChatStore(
-        authStore: auth,
-        channel: channel,
-        twitchApi: twitchApi,
-        ffzApi: ffzApi,
-        bttvApi: bttvApi,
-        sevenTvApi: sevenTvApi,
-        globalEmotes: _globalEmotes,
-        globalBadges: _globalBadges,
-        channelId: _channels[channel]?.id,
-      );
-      chatFutureList.add(_chats[channel]!.initialize());
+    if (isReconnect) {
+      for (var channel in _client!.channels) {
+        channel = channel.toLowerCase();
+        _chats[channel]?.addMessage(TwitchMessage.notice(
+          message: "Reconnecting to $channel...",
+          channel: channel,
+        ));
+      }
+    } else {
+      for (var channel in _client!.channels) {
+        channel = channel.toLowerCase();
+        _chats[channel] = ChatStore(
+          authStore: auth,
+          channel: channel,
+          twitchApi: twitchApi,
+          ffzApi: ffzApi,
+          bttvApi: bttvApi,
+          sevenTvApi: sevenTvApi,
+          globalEmotes: _globalEmotes,
+          globalBadges: _globalBadges,
+          channelId: _channels[channel]?.id,
+        );
+        chatFutureList.add(_chats[channel]!.initialize());
+      }
     }
 
     await Future.wait(chatFutureList);
@@ -113,7 +131,7 @@ abstract class ChannelBaseStore with Store {
 
     _subscription = _client!.listen(_handleEvent);
 
-    _refetchTimer = Timer.periodic(const Duration(minutes: 1), (timer) async {
+    _refetchTimer = Timer.periodic(refetchDuration, (timer) async {
       debugPrint("Refetching emotes");
       onError(err) {
         // TODO: Handle error
@@ -157,7 +175,27 @@ abstract class ChannelBaseStore with Store {
 
   @action
   void disconnect() {
+    if (!_connected) {
+      return;
+    }
+
     _client?.disconnect();
+    _connected = false;
+    _connecting = false;
+    for (var channel in _client!.channels) {
+      channel = channel.toLowerCase();
+      _chats[channel]?.addMessage(TwitchMessage.notice(
+        message: "Disconnected from $channel",
+        channel: channel,
+      ));
+    }
+  }
+
+  @action
+  void reconnect() {
+    final channels = _chats.keys.toList();
+    dispose();
+    initialize(channels: channels, isReconnect: true);
   }
 
   @action
@@ -185,6 +223,10 @@ abstract class ChannelBaseStore with Store {
   @action
   Future<void> join(String channel) async {
     channel = channel.toLowerCase();
+    final existingChat = _chats[channel];
+    if (existingChat != null) {
+      return;
+    }
 
     final channelObj = await twitchApi.getUser(
         userLogin: channel, headers: auth.twitchHeaders);
@@ -315,9 +357,10 @@ abstract class ChannelBaseStore with Store {
         break;
       case TmiClientEventType.connected:
         _connected = true;
+        _connecting = false;
         break;
       case TmiClientEventType.disconnected:
-        _connected = false;
+        disconnect();
         break;
       case TmiClientEventType.error:
         final errorEvent = event as TmiClientErrorEvent;

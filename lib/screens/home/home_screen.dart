@@ -1,8 +1,11 @@
+import "dart:async";
+
 import "package:chitchat/screens/home/add_tab_screen.dart";
 import "package:chitchat/screens/home/channel/channel_screen.dart";
 import "package:chitchat/screens/settings/settings_screen.dart";
 import "package:chitchat/stores/channel_store.dart";
 import "package:chitchat/stores/tab_store.dart";
+import "package:connectivity_plus/connectivity_plus.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
@@ -13,15 +16,19 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late ChannelStore _channelStore;
   late TabStore _tabStore;
   late List<String> _tabs;
   late TabController _tabController;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     _channelStore = context.read<ChannelStore>();
     _tabStore = context.read<TabStore>();
     if (_tabStore.tabs.isEmpty) {
@@ -34,6 +41,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _tabs = _tabStore.tabs;
 
     _channelStore.initialize(channels: _tabStore.tabs);
+
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen((result) async {
+      debugPrint("ConnectivityResult: $result");
+      if (!_channelStore.connecting) {
+        if (result == ConnectivityResult.none && _channelStore.connected) {
+          debugPrint("Disconnecting");
+          _channelStore.disconnect();
+        } else if (!_channelStore.connected) {
+          debugPrint("Reconnecting");
+          _channelStore.reconnect();
+        }
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeDependencies();
+    debugPrint("AppLifecycleState: $state");
+    switch (state) {
+      case AppLifecycleState.paused:
+        if (_channelStore.connected) {
+          _channelStore.disconnect();
+        }
+        break;
+      case AppLifecycleState.resumed:
+        if (!_channelStore.connecting && !_channelStore.connected) {
+          _channelStore.reconnect();
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   Future<void> addTab(String channelName) async {
@@ -69,8 +110,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _connectivitySubscription.cancel();
     _tabController.dispose();
+    super.dispose();
   }
 
   @override
