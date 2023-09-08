@@ -4,6 +4,7 @@ import "package:chitchat/models/badges/twitch_badge.dart";
 import "package:chitchat/models/emotes/emote.dart";
 import "package:chitchat/models/emotes/twitch_emote.dart";
 import "package:chitchat/models/twitch_channel.dart";
+import "package:chitchat/models/twitch_stream.dart";
 import "package:chitchat/models/twitch_user.dart";
 import "package:flutter/material.dart";
 import "package:http/http.dart";
@@ -207,6 +208,25 @@ class TwitchApi {
     }
 
     return Future.error("Could not fetch stream info");
+  }
+
+  Future<TwitchStreams> getFollowedStreams({
+    required String id,
+    required Map<String, String> headers,
+    String? cursor,
+  }) async {
+    final url = Uri.parse(cursor == null
+        ? "$_helixBase/streams/followed?user_id=$id"
+        : "$_helixBase/streams/followed?user_id=$id&after=$cursor");
+
+    final response = await _client.get(url, headers: headers);
+    final decoded = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return TwitchStreams.fromJson(decoded);
+    }
+
+    return Future.error(
+        "Failed to get followed streams: ${decoded["message"]}");
   }
 
   Future<bool> validateUserToken({required String userToken}) async {
