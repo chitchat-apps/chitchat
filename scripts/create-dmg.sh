@@ -2,7 +2,7 @@
 
 APP_VERSION="0.1.0"
 APP_NAME="ChitChat"
-DMG_FILE_NAME="${APP_NAME}-${APP_VERSION}-Installer.dmg"
+DMG_FILE_NAME="${APP_NAME}-Installer-${APP_VERSION}.dmg"
 VOLUME_NAME="${APP_NAME} v${APP_VERSION} Installer"
 SOURCE_FOLDER_PATH="build/macos/Build/Products/Release"
 DMG_SOURCE_FOLDER_PATH="${SOURCE_FOLDER_PATH}/out"
