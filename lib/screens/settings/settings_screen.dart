@@ -168,30 +168,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                 },
               ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 30, 16, 5),
-                child: Text(
-                  "Danger zone",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+              if (!const bool.fromEnvironment("dart.vm.product"))
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 30, 16, 5),
+                  child: Text(
+                    "Danger zone",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              ListTile(
-                leading: Icon(Icons.restore, color: Colors.red.shade400),
-                title: Row(
-                  children: [
-                    Text(
-                      "Reset app",
-                      style: TextStyle(color: Colors.red.shade400),
-                    ),
-                  ],
+              if (!const bool.fromEnvironment("dart.vm.product"))
+                ListTile(
+                  leading: Icon(Icons.restore, color: Colors.red.shade400),
+                  title: Row(
+                    children: [
+                      Text(
+                        "Reset app",
+                        style: TextStyle(color: Colors.red.shade400),
+                      ),
+                    ],
+                  ),
+                  onTap: () async {
+                    resetApp();
+                  },
                 ),
-                onTap: () async {
-                  resetApp();
-                },
-              ),
             ],
           ),
         );
