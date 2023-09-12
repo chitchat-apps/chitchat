@@ -10,7 +10,9 @@ OUTPUT_PATH="build/macos/Build/Products/DMG"
 CREATE_DMG=create-dmg
 
 # Make a copy of the chitchat.app, rename it to the "APP_NAME" and then move it to the "DMG_SOURCE_FOLDER_PATH"
-mkdir "${DMG_SOURCE_FOLDER_PATH}" && cp -R "${SOURCE_FOLDER_PATH}/chitchat.app" "${DMG_SOURCE_FOLDER_PATH}/${APP_NAME}.app"
+rm -rf "${DMG_SOURCE_FOLDER_PATH}"
+mkdir -p "${DMG_SOURCE_FOLDER_PATH}"
+cp -R "${SOURCE_FOLDER_PATH}/chitchat.app" "${DMG_SOURCE_FOLDER_PATH}/${APP_NAME}.app"
 
 # Make sure the DMG directory exists
 mkdir -p "${OUTPUT_PATH}"
